@@ -63,25 +63,6 @@ export default function Overview({ data, loading, stageSummary }) {
       .map(([name, orders]) => ({ name, count: orders.size }))
       .sort((a,b) => b.count - a.count).slice(0, 8)
 
-    // Stage breakdown — use stageSummary from worker (counts production orders, not items)
-    const stageData = stageSummary ? [
-      stageSummary.dr5Count  > 0 && { name: 'DR5 — צבע', value: stageSummary.dr5Count },
-      stageSummary.dr4Count  > 0 && { name: 'DR4 — עיבוד שבבי', value: stageSummary.dr4Count },
-      stageSummary.prdCount  > 0 && { name: 'PRD — הרכבה ישירה', value: stageSummary.prdCount },
-      stageSummary.directCount > 0 && { name: 'רכש גלם ישיר', value: stageSummary.directCount },
-    ].filter(Boolean) : (() => {
-      // fallback from data
-      const c = { 'DR5 — צבע':0, 'DR4 — עיבוד שבבי':0, 'PRD — הרכבה ישירה':0, 'רכש גלם ישיר':0 }
-      data.forEach(r => {
-        const s = r.stage || ''
-        if (s.includes('DR5')) c['DR5 — צבע']++
-        else if (s.includes('DR4')) c['DR4 — עיבוד שבבי']++
-        else if (s === 'PRD') c['PRD — הרכבה ישירה']++
-        else c['רכש גלם ישיר']++
-      })
-      return Object.entries(c).filter(([,v])=>v>0).map(([name,value])=>({name,value}))
-    })()
-
     // Bottlenecks
     const bottlenecks = [...data]
       .sort((a,b) => b.affectedOrdersCount - a.affectedOrdersCount)
@@ -116,6 +97,27 @@ export default function Overview({ data, loading, stageSummary }) {
 
     return { bo, danger, noPO, noDate, monthData, customerData, stageData, bottlenecks, poStatus, totalUSD }
   }, [data])
+
+  // Stage data — outside useMemo since it uses stageSummary prop
+  const stageData = useMemo(() => {
+    if (stageSummary) {
+      return [
+        stageSummary.dr5Count  > 0 && { name: 'DR5 — צבע', value: stageSummary.dr5Count },
+        stageSummary.dr4Count  > 0 && { name: 'DR4 — עיבוד שבבי', value: stageSummary.dr4Count },
+        stageSummary.prdCount  > 0 && { name: 'PRD — הרכבה ישירה', value: stageSummary.prdCount },
+        stageSummary.directCount > 0 && { name: 'רכש גלם ישיר', value: stageSummary.directCount },
+      ].filter(Boolean)
+    }
+    const c = { 'DR5 — צבע':0, 'DR4 — עיבוד שבבי':0, 'PRD — הרכבה ישירה':0, 'רכש גלם ישיר':0 }
+    data.forEach(r => {
+      const s = r.stage || ''
+      if (s.includes('DR5')) c['DR5 — צבע']++
+      else if (s.includes('DR4')) c['DR4 — עיבוד שבבי']++
+      else if (s === 'PRD') c['PRD — הרכבה ישירה']++
+      else c['רכש גלם ישיר']++
+    })
+    return Object.entries(c).filter(([,v])=>v>0).map(([name,value])=>({name,value}))
+  }, [data, stageSummary])
 
   // KPI card data
   const kpiItems = [
@@ -191,15 +193,15 @@ export default function Overview({ data, loading, stageSummary }) {
         <ChartCard title='פק"עות ממתינות לחומר — לפי שלב' onExport={() => exportStageData(stageData, data)}>
           <ResponsiveContainer width='100%' height={140}>
             <PieChart>
-              <Pie data={stats.stageData} cx='50%' cy='50%' innerRadius={35} outerRadius={60}
+              <Pie data={stageData} cx='50%' cy='50%' innerRadius={35} outerRadius={60}
                 dataKey='value' nameKey='name'>
-                {stats.stageData.map((_,i) => <Cell key={i} fill={COLORS[i]} />)}
+                {stageData.map((_,i) => <Cell key={i} fill={COLORS[i]} />)}
               </Pie>
               <Tooltip formatter={(v, name) => [v, name]} />
             </PieChart>
           </ResponsiveContainer>
           <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-            {stats.stageData.map((s,i) => (
+            {stageData.map((s,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:6, fontSize:11 }}>
                 <div style={{ width:8, height:8, borderRadius:'50%', background:COLORS[i], flexShrink:0 }} />
                 <span style={{ flex:1, color:'#555', fontSize:10 }}>{s.name}</span>
