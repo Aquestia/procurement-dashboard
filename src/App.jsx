@@ -33,14 +33,16 @@ export default function App() {
 
       if (files && files.length > 0) {
         setActiveFile(files[0])
-        const { data: procData } = await supabase
+        // Load all chunks for this file
+        const { data: chunks } = await supabase
           .from('procurement_data')
-          .select('*')
+          .select('data')
           .eq('file_id', files[0].id)
-          .limit(1)
 
-        if (procData && procData.length > 0) {
-          setData(procData[0].data)
+        if (chunks && chunks.length > 0) {
+          // Merge all chunks
+          const merged = chunks.flatMap(c => c.data)
+          setData(merged)
         }
       }
     } catch (err) {
@@ -76,12 +78,9 @@ export default function App() {
       [field]: value,
       updated_at: new Date().toISOString(),
     }
-
     await supabase
       .from('procurement_notes')
       .upsert(updated, { onConflict: 'item_number,sales_order,line_number' })
-      .select()
-
     setNotes(prev => ({ ...prev, [key]: updated }))
   }
 
