@@ -3,51 +3,41 @@ import * as XLSX from 'xlsx'
 export function processExcelFile(buffer) {
   const workbook = XLSX.read(buffer, { type: 'array', cellDates: true })
 
-  // Parse all sheets
-  const calcAlloc = parseSheet(workbook, ['calculated allocation', 'calculated'])
-  const boSheet = parseSheet(workbook, ['bo'])
-  const openPO = parseSheet(workbook, ['open purchase order lines'])
-  const dr4Sheet = parseSheet(workbook, ['dr4'])
-  const dr5Sheet = parseSheet(workbook, ['dr5'])
-  const openOrders = parseSheet(workbook, ['open sales orders', 'open sales'])
+  console.log('Sheet names:', workbook.SheetNames)
 
-  // Build lookup maps
+  const calcAlloc = parseSheetByName(workbook, 'Calculated allocation')
+  const boSheet = parseSheetByName(workbook, 'BO')
+  const openPO = parseSheetByName(workbook, 'Open purchase order lines')
+  const dr4Sheet = parseSheetByName(workbook, 'DR4')
+  const dr5Sheet = parseSheetByName(workbook, 'DR5')
+  const openOrders = parseSheetByName(workbook, 'Open sales orders')
+
+  console.log('calcAlloc rows:', calcAlloc.length)
+  console.log('boSheet rows:', boSheet.length)
+  console.log('openPO rows:', openPO.length)
+
   const boSet = buildBOSet(boSheet)
   const poByItem = buildPOByItem(openPO)
   const dr4Map = buildDRMap(dr4Sheet)
   const dr5Map = buildDRMap(dr5Sheet)
   const orderByPRD = buildOrderByPRD(openOrders)
 
-  // Build enriched shortage list from Calculated Allocation
-  const shortages = buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD)
-
-  return shortages
+  return buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD)
 }
 
-// ─── Sheet parsers ───────────────────────────────────────────────
-
-function getSheet(workbook, keywords) {
-  for (const name of workbook.SheetNames) {
-    for (const kw of keywords) {
-      if (name.toLowerCase().trim() === kw.toLowerCase().trim()) {
-        return XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1, defval: null })
-      }
-    }
-  }
-  // fallback: partial match
-  for (const name of workbook.SheetNames) {
-    for (const kw of keywords) {
-      if (name.toLowerCase().includes(kw.toLowerCase())) {
-        return XLSX.utils.sheet_to_json(workbook.Sheets[name], { header: 1, defval: null })
-      }
-    }
-  }
-  return []
-}
-
-function parseSheet(workbook, keywords) {
-  const rows = getSheet(workbook, keywords)
+function parseSheetByName(workbook, name) {
+  // Try exact match first
+  let sheetName = workbook.SheetNames.find(n => n === name)
+  // Then case-insensitive
+  if (!sheetName) sheetName = workbook.SheetNames.find(n => n.toLowerCase() === name.toLowerCase())
+  // Then partial
+  if (!sheetName) sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes(name.toLowerCase()))
+  
+  if (!sheetName) { console.warn('Sheet not found:', name); return [] }
+  
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: null })
   if (!rows || rows.length < 2) return []
+  
   const headers = rows[0].map((h, i) => h ? String(h).trim() : `col_${i}`)
   return rows.slice(1).filter(r => r.some(v => v !== null)).map(row => {
     const obj = {}
@@ -70,26 +60,20 @@ function str(v) {
   return String(v).trim()
 }
 
-// ─── Build BO set ────────────────────────────────────────────────
-
 function buildBOSet(boRows) {
-  // BO sheet: S & L column = "SOIL033159 2" or "SOIL0331592"
-  // Item Code column
   const boItems = new Set()
-  const boOrders = new Set() // sales order keys
+  const boOrders = new Set()
   boRows.forEach(r => {
-    const sl = str(r['S & L'])
     const item = str(r['Item Code'])
     const doc = str(r['Doc'])
-    const line = str(r['Line'])
+    const line = r['Line'] !== null ? String(r['Line']).split('.')[0].trim() : ''
+    const sl = str(r['S & L']).replace(/\s+/g, '')
     if (item) boItems.add(item)
     if (doc && line) boOrders.add(`${doc}-${line}`)
-    if (sl) boOrders.add(sl.replace(/\s+/g, ''))
+    if (sl) boOrders.add(sl)
   })
   return { boItems, boOrders }
 }
-
-// ─── Build PO lookup ─────────────────────────────────────────────
 
 function buildPOByItem(openPO) {
   const map = {}
@@ -113,115 +97,87 @@ function buildPOByItem(openPO) {
   return map
 }
 
-// ─── Build DR4/DR5 maps ──────────────────────────────────────────
-
 function buildDRMap(drRows) {
-  // parentPO → list of production orders
-  const map = {}
+  const parentToProd = {}
+  const prodToParent = {}
   drRows.forEach(r => {
-    const parent = str(r['Parent production order '] || r['Parent production order'])
-    const prod = str(r['Production order'])
+    const parent = str(r['Parent production order '] || r['Parent production order'] || '')
+    const prod = str(r['Production order'] || '')
     if (!prod) return
-    // Map production order → parent
-    if (!map[prod]) map[prod] = []
-    map[prod].push(parent)
-    // Map parent → production order
     if (parent) {
-      if (!map[parent]) map[parent] = []
-      if (!map[parent].includes(prod)) map[parent].push(prod)
+      if (!parentToProd[parent]) parentToProd[parent] = []
+      parentToProd[parent].push(prod)
+      prodToParent[prod] = parent
     }
   })
-  return map
+  return { parentToProd, prodToParent }
 }
 
-// ─── Build PRD → sales order map ─────────────────────────────────
-
 function buildOrderByPRD(openOrders) {
-  const map = {}
+  const prdToOrder = {}
+  const slToOrder = {}
   openOrders.forEach(r => {
     const prod = str(r['Production'])
     const so = str(r['Sales order'])
-    const line = str(r['Line number'])
-    const item = str(r['Item number'])
-    const customer = str(r['Customer name'])
-    const confirmedShip = fmtDate(r['Confirmed ship date'])
-    const requestedShip = fmtDate(r['Requested ship date'])
+    const line = r['Line number'] !== null ? String(r['Line number']).split('.')[0].trim() : ''
     const slKey = `${so}-${line}`
+    const orderInfo = {
+      salesOrder: so, lineNumber: line, slKey,
+      itemNumber: str(r['Item number']),
+      customer: str(r['Customer name']),
+      confirmedShip: fmtDate(r['Confirmed ship date']),
+      requestedShip: fmtDate(r['Requested ship date']),
+    }
     if (prod) {
-      if (!map[prod]) map[prod] = []
-      map[prod].push({ salesOrder: so, lineNumber: line, slKey, item, customer, confirmedShip, requestedShip })
+      if (!prdToOrder[prod]) prdToOrder[prod] = []
+      prdToOrder[prod].push(orderInfo)
     }
-    if (so && line) {
-      map[slKey] = [{ salesOrder: so, lineNumber: line, slKey, item, customer, confirmedShip, requestedShip }]
-    }
+    if (so && line) slToOrder[slKey] = orderInfo
   })
-  return map
+  return { prdToOrder, slToOrder }
 }
 
-// ─── Determine stage ─────────────────────────────────────────────
+function determineStage(references, dr4Map, dr5Map, orderByPRD) {
+  const { prdToOrder } = orderByPRD
+  const { parentToProd: dr4Parent, prodToParent: dr4Prod } = dr4Map
+  const { parentToProd: dr5Parent, prodToParent: dr5Prod } = dr5Map
 
-function determineStage(reference, dr4Map, dr5Map, orderByPRD) {
-  if (!reference) return { stage: 'לא ידוע', linkedOrders: [] }
-
-  const ref = str(reference)
-
-  // Is it a PRD (assembly)?
-  if (ref.startsWith('PRD')) {
-    const orders = orderByPRD[ref] || []
-    return { stage: 'PRD', linkedOrders: orders }
-  }
-
-  // Is it a sales order directly?
-  if (ref.startsWith('SOIL')) {
-    return { stage: 'הזמנה ישירה', linkedOrders: orderByPRD[ref] || [] }
-  }
-
-  // Is it in DR4?
-  const inDR4 = dr4Map[ref]
-  if (inDR4 && inDR4.length > 0) {
-    // Check if parent is PRD
-    const parents = inDR4.filter(p => p && p.startsWith('PRD'))
-    if (parents.length > 0) {
-      const orders = []
-      parents.forEach(p => {
-        const linked = orderByPRD[p] || []
-        orders.push(...linked)
-      })
-      // Check if also in DR5
-      const inDR5 = dr5Map[ref]
-      const stage = inDR5 ? 'DR4→DR5' : 'DR4'
-      return { stage, linkedOrders: orders }
+  for (const ref of references) {
+    if (!ref) continue
+    if (ref.startsWith('PRD')) {
+      return { stage: 'PRD', linkedOrders: prdToOrder[ref] || [] }
     }
-    return { stage: 'DR4', linkedOrders: [] }
-  }
-
-  // Is it in DR5?
-  const inDR5 = dr5Map[ref]
-  if (inDR5 && inDR5.length > 0) {
-    const parents = inDR5.filter(p => p && p.startsWith('PRD'))
-    if (parents.length > 0) {
-      const orders = []
-      parents.forEach(p => {
-        const linked = orderByPRD[p] || []
-        orders.push(...linked)
-      })
-      // Check if also in DR4
-      const inDR4_2 = dr4Map[ref]
-      const stage = inDR4_2 ? 'DR5→DR4' : 'DR5'
-      return { stage, linkedOrders: orders }
+    if (ref.startsWith('SOIL')) {
+      return { stage: 'הזמנה ישירה', linkedOrders: [] }
     }
-    return { stage: 'DR5', linkedOrders: [] }
+    // In DR4?
+    const dr4Parent_ = dr4Prod[ref]
+    if (dr4Parent_) {
+      const linkedOrders = prdToOrder[dr4Parent_] || []
+      // Also in DR5?
+      const inDR5 = dr5Prod[ref] || dr5Parent[ref]
+      return { stage: inDR5 ? 'DR4→DR5' : 'DR4', linkedOrders }
+    }
+    if (dr4Parent[ref]) {
+      return { stage: 'DR4', linkedOrders: [] }
+    }
+    // In DR5?
+    const dr5Parent_ = dr5Prod[ref]
+    if (dr5Parent_) {
+      const linkedOrders = prdToOrder[dr5Parent_] || []
+      const inDR4 = dr4Prod[ref] || dr4Parent[ref]
+      return { stage: inDR4 ? 'DR5→DR4' : 'DR5', linkedOrders }
+    }
+    if (dr5Parent[ref]) {
+      return { stage: 'DR5', linkedOrders: [] }
+    }
   }
-
   return { stage: 'לא ידוע', linkedOrders: [] }
 }
 
-// ─── Main: build shortage list ───────────────────────────────────
-
 function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) {
   const { boItems, boOrders } = boSet
-
-  // Deduplicate by item number — group all rows per item
+  const { slToOrder } = orderByPRD
   const itemMap = {}
 
   calcAlloc.forEach(r => {
@@ -229,10 +185,19 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
     if (!item) return
 
     const salesOrder = str(r['Sales order'])
-    const lineNumber = str(r['Line number'])
-    const slKey = `${salesOrder}-${lineNumber}`
-    const reference = str(r['Reference'] || r['Number2'] || '')
-    const isBO = boItems.has(item) || boOrders.has(slKey) || str(r['BO']) === 'Yes' || str(r['BO']) === 'כן'
+    const rawLine = r['Line number'] !== null ? String(r['Line number']).split('.')[0].trim() : ''
+    const slKey = `${salesOrder}-${rawLine}`
+    const reference = str(r['Reference'] || '')
+    const number2 = str(r['Number2'] || '')
+    
+    const isBO = boItems.has(item) ||
+      boOrders.has(slKey) ||
+      boOrders.has(salesOrder + rawLine) ||
+      str(r['BO']).toLowerCase() === 'yes' ||
+      str(r['BO']) === 'כן'
+
+    const shortageExist = str(r['Shortage exist']).toLowerCase() === 'yes'
+    if (!shortageExist && !isBO) return
 
     if (!itemMap[item]) {
       itemMap[item] = {
@@ -246,44 +211,38 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
         totalOnOrder: 0,
         totalAvailable: 0,
         totalReserved: 0,
-        shortageExist: false,
       }
     }
 
     const entry = itemMap[item]
     if (isBO) entry.isBO = true
-    if (str(r['Shortage exist']).toLowerCase() === 'yes') entry.shortageExist = true
-
-    // Add order
-    if (salesOrder) {
-      const exists = entry.orders.find(o => o.salesOrder === salesOrder && o.lineNumber === lineNumber)
-      if (!exists) {
-        entry.orders.push({
-          salesOrder,
-          lineNumber,
-          slKey,
-          customerName: str(r['Customer Name'] || r['Customer name2']),
-          confirmedShipDate: fmtDate(r['Confirmed ship date']),
-          requestedShipDate: fmtDate(r['Requested ship date']),
-          confirmedShipMonth: str(r['Confirmed Ship Month']),
-          requestedShipMonth: str(r['Requested Ship Month']),
-          isBO: isBO,
-          pool: str(r['Pool']),
-          remainingAmount: r['Remainig amount main currency'] || 0,
-          qtyRequired: r['Requested quantity'] || 0,
-          qtyPicked: r['Picked quantity'] || 0,
-          onOrder: r['On order'] || 0,
-          available: r['Available physical'] || 0,
-          reserved: r['Reserved physical'] || 0,
-          qtyAllocated: r['Quantity allocated'] || 0,
-          purchaseOrderQty: r['Purchase Order Quantity'] || 0,
-          openPurchaseOrders: str(r['Open Purchase Orders']),
-          reference,
-        })
-      }
-    }
 
     if (reference) entry.references.add(reference)
+    if (number2 && number2 !== reference) entry.references.add(number2)
+
+    if (salesOrder && !entry.orders.find(o => o.salesOrder === salesOrder && o.lineNumber === rawLine)) {
+      entry.orders.push({
+        salesOrder, lineNumber: rawLine, slKey,
+        customerName: str(r['Customer Name'] || r['Customer name2'] || ''),
+        confirmedShipDate: fmtDate(r['Confirmed ship date']),
+        requestedShipDate: fmtDate(r['Requested ship date']),
+        confirmedShipMonth: str(r['Confirmed Ship Month']),
+        requestedShipMonth: str(r['Requested Ship Month']),
+        isBO,
+        pool: str(r['Pool']),
+        remainingAmount: r['Remainig amount main currency'] || 0,
+        qtyRequired: r['Requested quantity'] || 0,
+        qtyPicked: r['Picked quantity'] || 0,
+        onOrder: r['On order'] || 0,
+        available: r['Available physical'] || 0,
+        reserved: r['Reserved physical'] || 0,
+        qtyAllocated: r['Quantity allocated'] || 0,
+        purchaseOrderQty: r['Purchase Order Quantity'] || 0,
+        openPurchaseOrders: str(r['Open Purchase Orders']),
+        reference,
+      })
+    }
+
     entry.totalQtyRequired += (r['Requested quantity'] || 0)
     entry.totalQtyPicked += (r['Picked quantity'] || 0)
     entry.totalOnOrder += (r['On order'] || 0)
@@ -291,67 +250,45 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
     entry.totalReserved += (r['Reserved physical'] || 0)
   })
 
-  // Now enrich each item
   return Object.values(itemMap).map(item => {
-    // Get all references for this item
-    const refs = [...item.references]
+    const refs = [...item.references].filter(Boolean)
+    const { stage, linkedOrders } = determineStage(refs, dr4Map, dr5Map, orderByPRD)
 
-    // Determine stage from first valid reference
-    let stage = 'לא ידוע'
-    let linkedOrders = []
-    for (const ref of refs) {
-      const result = determineStage(ref, dr4Map, dr5Map, orderByPRD)
-      if (result.stage !== 'לא ידוע') {
-        stage = result.stage
-        linkedOrders = result.linkedOrders
-        break
-      }
-    }
-
-    // Get PO info
     const pos = poByItem[item.itemNumber] || []
     const hasPO = pos.length > 0
     const totalOrdered = pos.reduce((s, p) => s + (p.deliverRemainder || 0), 0)
-    const nextReceipt = pos
-      .filter(p => p.confirmedReceiptDate)
+    const nextReceipt = pos.filter(p => p.confirmedReceiptDate)
       .sort((a, b) => new Date(a.confirmedReceiptDate) - new Date(b.confirmedReceiptDate))[0]
     const hasNoDate = hasPO && pos.every(p => !p.confirmedReceiptDate)
     const vendors = [...new Set(pos.map(p => p.vendorName).filter(Boolean))]
 
-    // Procurement status
     let procurementStatus = 'תקין'
     if (item.isBO) procurementStatus = 'BO'
-    else if (!hasPO) procurementStatus = 'בסכנה'
-    else if (hasNoDate) procurementStatus = 'בסכנה'
+    else if (!hasPO || hasNoDate) procurementStatus = 'בסכנה'
+
+    const boOrders_ = item.orders.filter(o => o.isBO)
 
     return {
       itemNumber: item.itemNumber,
       productName: item.productName,
       isBO: item.isBO,
-      shortageExist: item.shortageExist,
       procurementStatus,
       stage,
       references: refs,
       orders: item.orders,
-      boOrders: item.orders.filter(o => o.isBO),
+      boOrders: boOrders_,
       affectedOrdersCount: item.orders.length,
-      boOrdersCount: item.orders.filter(o => o.isBO).length,
-      // Quantities
+      boOrdersCount: boOrders_.length,
       totalQtyRequired: item.totalQtyRequired,
       totalQtyPicked: item.totalQtyPicked,
       totalOnOrder: item.totalOnOrder,
       totalAvailable: item.totalAvailable,
       totalReserved: item.totalReserved,
-      shortage: item.totalQtyRequired - item.totalQtyPicked - item.totalAvailable,
-      // PO info
-      hasPO,
-      totalOrdered,
-      hasNoDate,
-      vendors,
+      shortage: Math.max(0, item.totalQtyRequired - item.totalQtyPicked - item.totalAvailable),
+      hasPO, totalOrdered, hasNoDate, vendors,
       confirmedReceiptDate: nextReceipt?.confirmedReceiptDate || null,
       purchaseOrders: pos,
-      // Financial
       totalRemainingAmount: item.orders.reduce((s, o) => s + (o.remainingAmount || 0), 0),
     }
-  }).filter(item => item.shortageExist || item.isBO)
+  })
 }
