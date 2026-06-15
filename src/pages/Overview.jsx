@@ -208,7 +208,6 @@ export default function Overview({ data, loading, stageSummary }) {
             <Tooltip formatter={v => [v, 'הזמנות BO']} />
             <Bar dataKey='count' fill='#C0392B' radius={[0,4,4,0]}>
               <LabelList dataKey='count' position='right' style={{ fontSize:12, fill:'#333', fontWeight:600 }} />
-              <LabelList dataKey='name' position='insideRight' style={{ fontSize:10, fill:'#fff', fontWeight:500 }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
