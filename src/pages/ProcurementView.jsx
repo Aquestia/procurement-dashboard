@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Badge, NoteCell, ExportButton, PageWrapper, LoadingState, EmptyState, fmtDate } from '../components/shared'
 
 export default function ProcurementView({ data, notes, saveNote, loading }) {
@@ -79,8 +79,8 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
           </thead>
           <tbody>
             {filtered.map((row, i) => (
-              <>
-                <tr key={i}
+              <React.Fragment key={i}>
+                <tr
                   style={{ background: row.isBO ? '#FCEBEB18' : i%2===0 ? '#fff' : '#fafaf8', cursor:'pointer' }}
                   onClick={() => setExpandedItem(expandedItem === row.itemNumber ? null : row.itemNumber)}>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:'#378ADD', fontSize:11 }}>
@@ -125,7 +125,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
