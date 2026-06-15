@@ -14,14 +14,9 @@ function exportToExcel(data, filename, sheetName) {
 
 export default function Overview({ data, loading, stageSummary }) {
   const [expandedBottleneck, setExpandedBottleneck] = useState(null)
-  const now = new Date()
-  const dateStr = now.toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
-  const timeStr = now.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' })
-
-  if (loading) return <LoadingState />
-  if (!data || data.length === 0) return <EmptyState />
 
   const stats = useMemo(() => {
+    if (!data || data.length === 0) return null
     const bo      = data.filter(r => r.isBO)
     const danger  = data.filter(r => r.procurementStatus === 'בסכנה')
     const noPO    = data.filter(r => !r.hasPO)
@@ -98,18 +93,23 @@ export default function Overview({ data, loading, stageSummary }) {
     return { bo, danger, noPO, noDate, monthData, customerData, stageData, bottlenecks, poStatus, totalUSD }
   }, [data])
 
-  // Stage data — outside useMemo since it uses stageSummary prop
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
+  const timeStr = now.toLocaleTimeString('he-IL', { hour:'2-digit', minute:'2-digit' })
+
+  // Stage data
   const stageData = useMemo(() => {
-    if (stageSummary) {
-      return [
-        stageSummary.dr5Count  > 0 && { name: 'DR5 — צבע', value: stageSummary.dr5Count },
-        stageSummary.dr4Count  > 0 && { name: 'DR4 — עיבוד שבבי', value: stageSummary.dr4Count },
-        stageSummary.prdCount  > 0 && { name: 'PRD — הרכבה ישירה', value: stageSummary.prdCount },
-        stageSummary.directCount > 0 && { name: 'רכש גלם ישיר', value: stageSummary.directCount },
-      ].filter(Boolean)
-    }
+    const fromSummary = stageSummary ? [
+      { name: 'DR5 — צבע', value: stageSummary.dr5Count || 0 },
+      { name: 'DR4 — עיבוד שבבי', value: stageSummary.dr4Count || 0 },
+      { name: 'PRD — הרכבה ישירה', value: stageSummary.prdCount || 0 },
+      { name: 'רכש גלם ישיר', value: stageSummary.directCount || 0 },
+    ].filter(s => s.value > 0) : null
+
+    if (fromSummary && fromSummary.length > 0) return fromSummary
+
     const c = { 'DR5 — צבע':0, 'DR4 — עיבוד שבבי':0, 'PRD — הרכבה ישירה':0, 'רכש גלם ישיר':0 }
-    data.forEach(r => {
+    if (data) data.forEach(r => {
       const s = r.stage || ''
       if (s.includes('DR5')) c['DR5 — צבע']++
       else if (s.includes('DR4')) c['DR4 — עיבוד שבבי']++
@@ -118,6 +118,10 @@ export default function Overview({ data, loading, stageSummary }) {
     })
     return Object.entries(c).filter(([,v])=>v>0).map(([name,value])=>({name,value}))
   }, [data, stageSummary])
+
+  // Early returns AFTER all hooks
+  if (loading) return <LoadingState />
+  if (!data || data.length === 0 || !stats) return <EmptyState />
 
   // KPI card data
   const kpiItems = [
