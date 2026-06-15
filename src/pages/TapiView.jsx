@@ -114,15 +114,13 @@ export default function TapiView({ data, notes, saveNote, loading }) {
     {
       key: 'note_procurement', label: 'הערת רכש', sortable: false,
       render: (_, row, notes, saveNote) => {
-        const key = `${row.itemNumber}__${row.salesOrder}__${row.lineNumber}`
-        return <NoteCell value={notes[key]?.note_procurement || ''} onChange={v => saveNote(row.itemNumber, row.salesOrder, row.lineNumber, 'note_procurement', v)} placeholder='הערת רכש...' />
+        return <NoteCell value={notes[row.itemNumber]?.note_procurement || ''} onChange={v => saveNote(row.itemNumber, row.salesOrder, row.lineNumber, 'note_procurement', v)} placeholder='הערת רכש...' />
       }
     },
     {
       key: 'note_tapi', label: 'הערת תפ"י', sortable: false,
       render: (_, row, notes, saveNote) => {
-        const key = `${row.itemNumber}__${row.salesOrder}__${row.lineNumber}`
-        return <NoteCell value={notes[key]?.note_tapi || ''} onChange={v => saveNote(row.itemNumber, row.salesOrder, row.lineNumber, 'note_tapi', v)} placeholder='הערת תפ"י...' />
+        return <NoteCell value={notes[row.itemNumber]?.note_tapi || ''} onChange={v => saveNote(row.itemNumber, row.salesOrder, row.lineNumber, 'note_tapi', v)} placeholder='הערת תפ"י...' />
       }
     },
   ]
