@@ -139,11 +139,10 @@ export default function Overview({ data, loading }) {
         ))}
       </div>
 
-      {/* Charts row 1 */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
-        {/* Monthly chart */}
+      {/* Charts row 1 - monthly only */}
+      <div style={{ marginBottom:12 }}>
         <ChartCard title='חוסרים לפי חודש אספקה מאושר'>
-          <ResponsiveContainer width='100%' height={200}>
+          <ResponsiveContainer width='100%' height={180}>
             <BarChart data={stats.monthData} margin={{ top:16, right:8, left:-20, bottom:4 }}>
               <XAxis dataKey='label' tick={{ fontSize:10 }} />
               <YAxis tick={{ fontSize:10 }} />
@@ -151,20 +150,6 @@ export default function Overview({ data, loading }) {
               <Bar dataKey='count' radius={[3,3,0,0]}>
                 <LabelList dataKey='count' position='top' style={{ fontSize:10, fill:'#555' }} />
                 {stats.monthData.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* BO by customer — bigger, full names */}
-        <ChartCard title='Back Orders לפי לקוח — TOP 8'>
-          <ResponsiveContainer width='100%' height={200}>
-            <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:36, left:4, bottom:4 }}>
-              <XAxis type='number' tick={{ fontSize:10 }} />
-              <YAxis type='category' dataKey='name' tick={{ fontSize:10 }} width={160} />
-              <Tooltip formatter={v => [v, 'הזמנות BO']} />
-              <Bar dataKey='count' fill='#E24B4A' radius={[0,3,3,0]}>
-                <LabelList dataKey='count' position='right' style={{ fontSize:10, fill:'#555' }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -244,6 +229,21 @@ export default function Overview({ data, loading }) {
           }}>
             ⬇ ייצוא נתונים מלאים
           </button>
+        </ChartCard>
+      </div>
+      {/* BO by customer — full width */}
+      <div style={{ marginTop:12 }}>
+        <ChartCard title='Back Orders לפי לקוח — TOP 8'>
+          <ResponsiveContainer width='100%' height={240}>
+            <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:40, left:8, bottom:4 }}>
+              <XAxis type='number' tick={{ fontSize:11 }} />
+              <YAxis type='category' dataKey='name' tick={{ fontSize:11 }} width={220} />
+              <Tooltip formatter={v => [v, 'הזמנות BO']} />
+              <Bar dataKey='count' fill='#E24B4A' radius={[0,3,3,0]}>
+                <LabelList dataKey='count' position='right' style={{ fontSize:11, fill:'#555', fontWeight:600 }} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </ChartCard>
       </div>
     </div>
