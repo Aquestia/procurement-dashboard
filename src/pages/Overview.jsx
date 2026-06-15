@@ -188,7 +188,7 @@ export default function Overview({ data, loading, stageSummary }) {
         </ChartCard>
 
         {/* Stage breakdown */}
-        <ChartCard title='פק"עות ממתינות לחומר — לפי שלב'>
+        <ChartCard title='פק"עות ממתינות לחומר — לפי שלב' onExport={() => exportStageData(stageData, data)}>
           <ResponsiveContainer width='100%' height={140}>
             <PieChart>
               <Pie data={stats.stageData} cx='50%' cy='50%' innerRadius={35} outerRadius={60}
@@ -433,29 +433,150 @@ function exportPOStatus(poStatus) {
   const rows = []
   poStatus.forEach(s => {
     s.rows?.forEach(r => {
-      rows.push({
-        'קטגוריה': s.name,
-        'מק"ט': r.itemNumber,
-        'תיאור': r.productName,
-        'סטטוס': r.procurementStatus,
-        'שלב': r.stage,
-        'נדרש': r.totalQtyRequired,
-        'חוסר נטו': r.shortage,
-        'ספק': r.vendors?.join(', ') || '',
-        'צפי קבלה': fmtDate(r.confirmedReceiptDate),
-        'הזמנות מושפעות': r.affectedOrdersCount,
-      })
+      // One row per order
+      if (r.orders && r.orders.length > 0) {
+        r.orders.forEach(o => {
+          r.purchaseOrders?.forEach(po => {
+            rows.push({
+              'קטגוריה': s.name,
+              'מק"ט': r.itemNumber,
+              'תיאור': r.productName,
+              'סטטוס': r.procurementStatus,
+              'שלב': r.stage,
+              'פק"ע': r.prd || '',
+              'מספר הזמנה': o.salesOrder || '',
+              'שורה': o.lineNumber || '',
+              'לקוח': o.customerName || '',
+              'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
+              'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
+              'נדרש': r.totalQtyRequired,
+              'נאסף': r.totalQtyPicked,
+              'זמין': r.totalAvailable,
+              'חוסר נטו': r.shortage,
+              'הז. רכש': po.purchaseOrder || '',
+              'שורת רכש': po.lineNumber || '',
+              'ספק': po.vendorName || '',
+              'קב. רכש': po.buyerGroup || '',
+              'כמות הוזמנה': po.quantity || '',
+              'יתרה': po.deliverRemainder || '',
+              'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
+            })
+          })
+          if (!r.purchaseOrders || r.purchaseOrders.length === 0) {
+            rows.push({
+              'קטגוריה': s.name,
+              'מק"ט': r.itemNumber,
+              'תיאור': r.productName,
+              'סטטוס': r.procurementStatus,
+              'שלב': r.stage,
+              'פק"ע': r.prd || '',
+              'מספר הזמנה': o.salesOrder || '',
+              'שורה': o.lineNumber || '',
+              'לקוח': o.customerName || '',
+              'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
+              'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
+              'נדרש': r.totalQtyRequired,
+              'נאסף': r.totalQtyPicked,
+              'זמין': r.totalAvailable,
+              'חוסר נטו': r.shortage,
+              'הז. רכש': 'אין',
+              'שורת רכש': '', 'ספק': '', 'קב. רכש': '',
+              'כמות הוזמנה': '', 'יתרה': '', 'ת. קבלה מאושר': '',
+            })
+          }
+        })
+      } else {
+        rows.push({
+          'קטגוריה': s.name,
+          'מק"ט': r.itemNumber,
+          'תיאור': r.productName,
+          'סטטוס': r.procurementStatus,
+          'שלב': r.stage,
+          'פק"ע': r.prd || '',
+          'מספר הזמנה': '', 'שורה': '', 'לקוח': '',
+          'ת. אספקה מאושר': '', 'ת. אספקה מבוקש': '',
+          'נדרש': r.totalQtyRequired,
+          'נאסף': r.totalQtyPicked,
+          'זמין': r.totalAvailable,
+          'חוסר נטו': r.shortage,
+          'הז. רכש': r.hasPO ? 'כן' : 'אין',
+          'שורת רכש': '', 'ספק': r.vendors?.join(', ') || '',
+          'קב. רכש': '', 'כמות הוזמנה': '', 'יתרה': '', 'ת. קבלה מאושר': fmtDate(r.confirmedReceiptDate),
+        })
+      }
     })
   })
   exportToExcel(rows, 'סטטוס_רכש_מלא.xlsx', 'סטטוס רכש')
 }
 
 // ─── Chart card wrapper ────────────────────────────────────────────
-function ChartCard({ title, children }) {
+function ChartCard({ title, children, onExport }) {
   return (
     <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, padding:14 }}>
-      <div style={{ fontSize:12, fontWeight:600, marginBottom:8 }}>{title}</div>
+      <div style={{ display:'flex', alignItems:'center', marginBottom:8 }}>
+        <span style={{ fontSize:12, fontWeight:600, flex:1 }}>{title}</span>
+        {onExport && (
+          <button onClick={onExport} style={{
+            fontSize:10, padding:'2px 8px', border:'0.5px solid #378ADD',
+            borderRadius:5, background:'transparent', color:'#378ADD', cursor:'pointer'
+          }}>⬇ Excel</button>
+        )}
+      </div>
       {children}
     </div>
   )
+}
+
+function exportStageData(stageData, data) {
+  const rows = []
+  data.forEach(r => {
+    const stage = r.stage || ''
+    let category = ''
+    if (stage.includes('DR5')) category = 'DR5 — צבע'
+    else if (stage.includes('DR4')) category = 'DR4 — עיבוד שבבי'
+    else if (stage === 'PRD') category = 'PRD — הרכבה ישירה'
+    else category = 'רכש גלם ישיר'
+
+    r.orders?.forEach(o => {
+      r.purchaseOrders?.forEach(po => {
+        rows.push({
+          'שלב': category,
+          'פק"ע': r.prd || '',
+          'מק"ט': r.itemNumber,
+          'תיאור': r.productName,
+          'מספר הזמנה': o.salesOrder || '',
+          'שורה': o.lineNumber || '',
+          'לקוח': o.customerName || '',
+          'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
+          'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
+          'נדרש': r.totalQtyRequired,
+          'חוסר נטו': r.shortage,
+          'הז. רכש': po.purchaseOrder || '',
+          'שורת רכש': po.lineNumber || '',
+          'ספק': po.vendorName || '',
+          'קב. רכש': po.buyerGroup || '',
+          'יתרה': po.deliverRemainder || '',
+          'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
+        })
+      })
+      if (!r.purchaseOrders || r.purchaseOrders.length === 0) {
+        rows.push({
+          'שלב': category,
+          'פק"ע': r.prd || '',
+          'מק"ט': r.itemNumber,
+          'תיאור': r.productName,
+          'מספר הזמנה': o.salesOrder || '',
+          'שורה': o.lineNumber || '',
+          'לקוח': o.customerName || '',
+          'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
+          'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
+          'נדרש': r.totalQtyRequired,
+          'חוסר נטו': r.shortage,
+          'הז. רכש': 'אין', 'שורת רכש': '', 'ספק': '',
+          'קב. רכש': '', 'יתרה': '', 'ת. קבלה מאושר': '',
+        })
+      }
+    })
+  })
+  exportToExcel(rows, 'שלבי_ייצור_מלא.xlsx', 'שלבי ייצור')
 }
