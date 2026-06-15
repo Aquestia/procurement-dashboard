@@ -1,10 +1,11 @@
 import { useState, useMemo } from 'react'
-import { Badge, NoteCell, ExportButton, SortableTable, PageWrapper, LoadingState, EmptyState, fmtDate } from '../components/shared'
+import { Badge, NoteCell, ExportButton, PageWrapper, LoadingState, EmptyState, fmtDate } from '../components/shared'
 
 export default function BackOrders({ data, notes, saveNote, loading }) {
   const [search, setSearch] = useState('')
   const [filterStage, setFilterStage] = useState('הכל')
   const [filterPO, setFilterPO] = useState('הכל')
+  const [expandedItem, setExpandedItem] = useState(null)
 
   if (loading) return <LoadingState />
   if (!data) return <EmptyState />
@@ -16,71 +17,114 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
       if (filterStage !== 'הכל' && !r.stage?.includes(filterStage)) return false
       if (filterPO === 'ללא הזמנה' && r.hasPO) return false
       if (filterPO === 'ללא תאריך' && (!r.hasPO || r.confirmedReceiptDate)) return false
-      if (filterPO === 'מאחר' && !r.isLateReceipt) return false
       if (search) {
         const s = search.toLowerCase()
-        return r.itemNumber?.toLowerCase().includes(s) || r.salesOrder?.toLowerCase().includes(s) || r.customerName?.toLowerCase().includes(s)
+        return r.itemNumber?.toLowerCase().includes(s) ||
+          r.productName?.toLowerCase().includes(s) ||
+          r.boOrders?.some(o => o.salesOrder?.toLowerCase().includes(s) || o.customerName?.toLowerCase().includes(s))
       }
       return true
     })
   }, [boData, filterStage, filterPO, search])
 
-  const COLUMNS = [
-    { key: 'itemNumber', label: 'מק"ט' },
-    { key: 'salesOrder', label: 'הזמנה' },
-    { key: 'lineNumber', label: 'שורה' },
-    { key: 'customerName', label: 'לקוח' },
-    { key: 'requestedShipDate', label: 'ת. מבוקש', render: v => fmtDate(v) },
-    { key: 'confirmedShipDate', label: 'ת. מאושר', render: v => fmtDate(v) },
-    { key: 'stage', label: 'שלב ייצור', render: v => <Badge status={v} /> },
-    { key: 'qtyRequired', label: 'נדרש' },
-    { key: 'poQtyOrdered', label: 'הוזמן' },
-    {
-      key: 'hasPO', label: 'סטטוס רכש', render: (v, row) => {
-        if (!v) return <Badge status='BO' />
-        if (row.hasNoDate) return <span style={{ fontSize: 10, color: '#854F0B' }}>ללא תאריך</span>
-        if (row.isLateReceipt) return <span style={{ fontSize: 10, color: '#A32D2D' }}>מאחר</span>
-        return <span style={{ fontSize: 10, color: '#3B6D11' }}>הוזמן</span>
-      }
-    },
-    { key: 'confirmedReceiptDate', label: 'צפי קבלה', render: v => fmtDate(v) },
-    { key: 'vendorName', label: 'ספק' },
-    {
-      key: 'note_procurement', label: 'הערת רכש', sortable: false,
-      render: (_, row, notes, saveNote) => {
-        const key = `${row.itemNumber}__${row.salesOrder}__${row.lineNumber}`
-        return <NoteCell value={notes[key]?.note_procurement || ''} onChange={v => saveNote(row.itemNumber, row.salesOrder, row.lineNumber, 'note_procurement', v)} />
-      }
-    },
-    {
-      key: 'note_tapi', label: 'הערת תפ"י', sortable: false,
-      render: (_, row, notes, saveNote) => {
-        const key = `${row.itemNumber}__${row.salesOrder}__${row.lineNumber}`
-        return <NoteCell value={notes[key]?.note_tapi || ''} onChange={v => saveNote(row.itemNumber, row.salesOrder, row.lineNumber, 'note_tapi', v)} />
-      }
-    },
-  ]
-
   return (
-    <PageWrapper title={`Back Orders (${boData.length})`} topActions={
-      <ExportButton data={filtered} columns={COLUMNS.map(c => ({ key: c.key, label: c.label }))} filename='back_orders.xlsx' />
+    <PageWrapper title={`Back Orders — ${boData.length} מק"טים`} topActions={
+      <ExportButton data={filtered} columns={[
+        { key: 'itemNumber', label: 'מק"ט' },
+        { key: 'productName', label: 'תיאור' },
+        { key: 'stage', label: 'שלב' },
+        { key: 'boOrdersCount', label: 'מספר BO' },
+        { key: 'totalQtyRequired', label: 'כמות נדרשת' },
+        { key: 'totalOnOrder', label: 'בהזמנת רכש' },
+        { key: 'confirmedReceiptDate', label: 'צפי קבלה' },
+      ]} filename='back_orders.xlsx' />
     }>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder='חיפוש...'
-          style={{ fontSize: 12, padding: '5px 10px', border: '0.5px solid #ddd', borderRadius: 6, width: 180, background: '#fff', color: '#1a1a1a' }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder='חיפוש מק"ט / לקוח...'
+          style={{ fontSize: 12, padding: '5px 10px', border: '0.5px solid #ddd', borderRadius: 6, width: 200, background: '#fff', color: '#1a1a1a' }} />
         <select value={filterStage} onChange={e => setFilterStage(e.target.value)}
           style={{ fontSize: 12, padding: '5px 8px', border: '0.5px solid #ddd', borderRadius: 6, background: '#fff', color: '#1a1a1a' }}>
-          {['הכל', 'PRD', 'DR4', 'DR5'].map(o => <option key={o}>{o}</option>)}
+          {['הכל', 'PRD', 'DR4', 'DR5', 'לא ידוע'].map(o => <option key={o}>{o}</option>)}
         </select>
         <select value={filterPO} onChange={e => setFilterPO(e.target.value)}
           style={{ fontSize: 12, padding: '5px 8px', border: '0.5px solid #ddd', borderRadius: 6, background: '#fff', color: '#1a1a1a' }}>
-          {['הכל', 'ללא הזמנה', 'ללא תאריך', 'מאחר'].map(o => <option key={o}>{o}</option>)}
+          {['הכל', 'ללא הזמנה', 'ללא תאריך'].map(o => <option key={o}>{o}</option>)}
         </select>
-        <span style={{ fontSize: 11, color: '#999', marginRight: 'auto' }}>{filtered.length} שורות</span>
+        <span style={{ fontSize: 11, color: '#999', marginRight: 'auto' }}>{filtered.length} מק"טים</span>
       </div>
-      <div style={{ background: '#fff', border: '0.5px solid #e5e5e0', borderRadius: 10, overflow: 'hidden' }}>
-        <SortableTable rows={filtered} columns={COLUMNS} notes={notes} saveNote={saveNote}
-          rowStyle={(row, i) => ({ background: '#FCEBEB18' })} />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {filtered.map((item, i) => (
+          <div key={i} style={{ background: '#fff', border: '0.5px solid #F09595', borderRadius: 10, overflow: 'hidden' }}>
+            {/* Item header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#FCEBEB18', cursor: 'pointer' }}
+              onClick={() => setExpandedItem(expandedItem === item.itemNumber ? null : item.itemNumber)}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{item.itemNumber}</span>
+                  <Badge status='BO' />
+                  <Badge status={item.stage} />
+                  {!item.hasPO && <span style={{ fontSize: 10, background: '#FCEBEB', color: '#A32D2D', padding: '1px 6px', borderRadius: 6 }}>ללא הזמנת רכש</span>}
+                  {item.hasNoDate && <span style={{ fontSize: 10, background: '#FAEEDA', color: '#854F0B', padding: '1px 6px', borderRadius: 6 }}>ללא תאריך</span>}
+                </div>
+                <div style={{ fontSize: 11, color: '#666' }}>{item.productName}</div>
+              </div>
+              <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#555' }}>
+                <div><span style={{ color: '#888' }}>הזמנות BO: </span><strong style={{ color: '#A32D2D' }}>{item.boOrdersCount}</strong></div>
+                <div><span style={{ color: '#888' }}>נדרש: </span><strong>{item.totalQtyRequired}</strong></div>
+                <div><span style={{ color: '#888' }}>בהזמנה: </span><strong>{item.totalOnOrder}</strong></div>
+                <div><span style={{ color: '#888' }}>צפי קבלה: </span><strong>{fmtDate(item.confirmedReceiptDate) || '—'}</strong></div>
+                <div><span style={{ color: '#888' }}>ספק: </span><strong>{item.vendors?.join(', ') || '—'}</strong></div>
+              </div>
+              <span style={{ fontSize: 12, color: '#378ADD' }}>{expandedItem === item.itemNumber ? '▲' : '▼'}</span>
+            </div>
+
+            {/* Expanded orders */}
+            {expandedItem === item.itemNumber && (
+              <div style={{ padding: '10px 14px', borderTop: '0.5px solid #f0e0e0' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 8, color: '#555' }}>הזמנות BO מושפעות:</div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <thead>
+                    <tr>
+                      {['הזמנה', 'שורה', 'לקוח', 'ת. מאושר', 'ת. מבוקש', 'כמות'].map(h => (
+                        <th key={h} style={{ background: '#f4f4f0', padding: '5px 8px', fontWeight: 600, fontSize: 10, color: '#555', borderBottom: '0.5px solid #e0e0da', textAlign: 'right' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {item.boOrders?.map((o, j) => (
+                      <tr key={j} style={{ background: j % 2 === 0 ? '#fff' : '#fafaf8' }}>
+                        <td style={{ padding: '5px 8px', borderBottom: '0.5px solid #f0f0ea' }}>{o.salesOrder}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '0.5px solid #f0f0ea' }}>{o.lineNumber}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '0.5px solid #f0f0ea' }}>{o.customerName}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '0.5px solid #f0f0ea' }}>{fmtDate(o.confirmedShipDate)}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '0.5px solid #f0f0ea' }}>{fmtDate(o.requestedShipDate)}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '0.5px solid #f0f0ea' }}>{o.qtyRequired}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Notes */}
+                <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: '#888', marginBottom: 3 }}>הערת רכש:</div>
+                    <NoteCell value={notes[`${item.itemNumber}____`]?.note_procurement || ''}
+                      onChange={v => saveNote(item.itemNumber, '', '', 'note_procurement', v)}
+                      placeholder='הערת רכש...' />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: '#888', marginBottom: 3 }}>הערת תפ"י:</div>
+                    <NoteCell value={notes[`${item.itemNumber}____`]?.note_tapi || ''}
+                      onChange={v => saveNote(item.itemNumber, '', '', 'note_tapi', v)}
+                      placeholder='הערת תפ"י...' />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        {filtered.length === 0 && <EmptyState message='אין Back Orders' />}
       </div>
     </PageWrapper>
   )

@@ -51,9 +51,7 @@ export default function App() {
 
   async function loadNotes() {
     try {
-      const { data: notesData } = await supabase
-        .from('procurement_notes')
-        .select('*')
+      const { data: notesData } = await supabase.from('procurement_notes').select('*')
       if (notesData) {
         const notesMap = {}
         notesData.forEach(n => {
@@ -73,20 +71,18 @@ export default function App() {
     const updated = {
       ...existing,
       item_number: itemNumber,
-      sales_order: salesOrder,
-      line_number: lineNumber,
+      sales_order: salesOrder || '',
+      line_number: lineNumber || '',
       [field]: value,
       updated_at: new Date().toISOString(),
     }
 
-    const { data: saved } = await supabase
+    await supabase
       .from('procurement_notes')
       .upsert(updated, { onConflict: 'item_number,sales_order,line_number' })
       .select()
 
-    if (saved) {
-      setNotes(prev => ({ ...prev, [key]: updated }))
-    }
+    setNotes(prev => ({ ...prev, [key]: updated }))
   }
 
   const pages = {
@@ -102,7 +98,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', height: '100vh', direction: 'rtl', fontFamily: 'Segoe UI, Arial, sans-serif', background: '#f8f8f6' }}>
       <Sidebar activePage={activePage} setActivePage={setActivePage} activeFile={activeFile} data={data} />
-      <main style={{ flex: 1, overflow: 'auto', padding: '0' }}>
+      <main style={{ flex: 1, overflow: 'auto' }}>
         {pages[activePage]}
       </main>
     </div>
