@@ -179,21 +179,22 @@ function ExpandedPanel({ item }) {
           <div style={{ overflowX:'auto', maxHeight:200, overflowY:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
               <thead>
-                <tr>{['הז. רכש','ספק','כמות','יתרה','תאריך מאושר','סטטוס'].map(h => (
+                <tr>{['הז. רכש','שורה','ספק','קב. רכש','כמות','יתרה','ת. משלוח מאושר'].map(h => (
                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 7px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
                 {item.purchaseOrders?.map((po, j) => (
                   <tr key={j} style={{ background: j%2===0 ? '#fff' : '#f9f9f7' }}>
-                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{po.purchaseOrder}</td>
+                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', fontWeight:500 }}>{po.purchaseOrder}</td>
+                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber}</td>
                     <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName}</td>
+                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#666' }}>{po.buyerGroup}</td>
                     <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity}</td>
                     <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.deliverRemainder}</td>
-                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color: po.hasMissingDate ? '#A32D2D' : '#1a1a1a' }}>
+                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color: !po.confirmedReceiptDate ? '#A32D2D' : '#1a1a1a' }}>
                       {po.confirmedReceiptDate ? fmtDate(po.confirmedReceiptDate) : '⚠️ חסר תאריך'}
                     </td>
-                    <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', fontSize:10 }}>{po.approvalStatus}</td>
                   </tr>
                 ))}
               </tbody>

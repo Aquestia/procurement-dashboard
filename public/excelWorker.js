@@ -137,6 +137,7 @@ function buildPOByItem(rows) {
     if (!map[item]) map[item] = []
     map[item].push({
       purchaseOrder:        str(r['Purchase order']),
+      lineNumber:           str(r['Line number'] || ''),
       vendorName:           str(r['Vendor name']),
       buyerGroup:           str(r['Buyer group']),
       quantity:             num(r['Quantity']),
