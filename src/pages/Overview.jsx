@@ -12,7 +12,7 @@ function exportToExcel(data, filename, sheetName) {
   XLSX.writeFile(wb, filename)
 }
 
-export default function Overview({ data, loading }) {
+export default function Overview({ data, loading, stageSummary }) {
   const [expandedBottleneck, setExpandedBottleneck] = useState(null)
   const now = new Date()
   const dateStr = now.toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
@@ -63,19 +63,24 @@ export default function Overview({ data, loading }) {
       .map(([name, orders]) => ({ name, count: orders.size }))
       .sort((a,b) => b.count - a.count).slice(0, 8)
 
-    // Stage breakdown — count by stage type
-    const stageCounts = { 'DR5 (צבע)': 0, 'DR4 (עיבוד)': 0, 'PRD (הרכבה)': 0, 'רכש ישיר': 0, 'לא ידוע': 0 }
-    data.forEach(r => {
-      const s = r.stage || ''
-      if (s.includes('DR5')) stageCounts['DR5 (צבע)']++
-      else if (s.includes('DR4')) stageCounts['DR4 (עיבוד)']++
-      else if (s === 'PRD') stageCounts['PRD (הרכבה)']++
-      else if (s.includes('רכש')) stageCounts['רכש ישיר']++
-      else stageCounts['לא ידוע']++
-    })
-    const stageData = Object.entries(stageCounts)
-      .filter(([,v]) => v > 0)
-      .map(([name, value]) => ({ name, value }))
+    // Stage breakdown — use stageSummary from worker (counts production orders, not items)
+    const stageData = stageSummary ? [
+      stageSummary.dr5Count  > 0 && { name: 'DR5 — צבע', value: stageSummary.dr5Count },
+      stageSummary.dr4Count  > 0 && { name: 'DR4 — עיבוד שבבי', value: stageSummary.dr4Count },
+      stageSummary.prdCount  > 0 && { name: 'PRD — הרכבה ישירה', value: stageSummary.prdCount },
+      stageSummary.directCount > 0 && { name: 'רכש גלם ישיר', value: stageSummary.directCount },
+    ].filter(Boolean) : (() => {
+      // fallback from data
+      const c = { 'DR5 — צבע':0, 'DR4 — עיבוד שבבי':0, 'PRD — הרכבה ישירה':0, 'רכש גלם ישיר':0 }
+      data.forEach(r => {
+        const s = r.stage || ''
+        if (s.includes('DR5')) c['DR5 — צבע']++
+        else if (s.includes('DR4')) c['DR4 — עיבוד שבבי']++
+        else if (s === 'PRD') c['PRD — הרכבה ישירה']++
+        else c['רכש גלם ישיר']++
+      })
+      return Object.entries(c).filter(([,v])=>v>0).map(([name,value])=>({name,value}))
+    })()
 
     // Bottlenecks
     const bottlenecks = [...data]
@@ -183,7 +188,7 @@ export default function Overview({ data, loading }) {
         </ChartCard>
 
         {/* Stage breakdown */}
-        <ChartCard title='התפלגות לפי שלב ייצור'>
+        <ChartCard title='פק"עות ממתינות לחומר — לפי שלב'>
           <ResponsiveContainer width='100%' height={140}>
             <PieChart>
               <Pie data={stats.stageData} cx='50%' cy='50%' innerRadius={35} outerRadius={60}

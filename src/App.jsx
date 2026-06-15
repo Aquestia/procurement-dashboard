@@ -15,6 +15,7 @@ export default function App() {
   const [activeFile, setActiveFile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notes, setNotes] = useState({})
+  const [stageSummary, setStageSummary] = useState(null)
 
   useEffect(() => { loadActiveFile(); loadNotes() }, [])
 
@@ -30,7 +31,11 @@ export default function App() {
         const { data: chunks } = await supabase
           .from('procurement_data').select('data').eq('file_id', files[0].id)
         if (chunks && chunks.length > 0) {
-          setData(chunks.flatMap(c => c.data))
+          const all = chunks.flatMap(c => c.data)
+          const meta = all.find(r => r.__meta)
+          const items = all.filter(r => !r.__meta)
+          setStageSummary(meta?.stageSummary || null)
+          setData(items)
         }
       }
     } catch (err) { console.error(err) }
@@ -64,7 +69,7 @@ export default function App() {
   }
 
   const pages = {
-    overview:       <Overview data={data} loading={loading} />,
+    overview:       <Overview data={data} loading={loading} stageSummary={stageSummary} />,
     procurement:    <ProcurementView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     tapi:           <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     backorders:     <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,

@@ -36,7 +36,62 @@ function processExcelFile(buffer) {
   const soBySOItem = buildSOBySOItem(openOrders)
   const soBySOLine = buildSOBySOLine(openOrders)
 
-  return buildShortages(calc, boSet, poByItem, soByPRD, dr4ByProd, dr5ByProd, dr4ByMain, dr5ByMain, soBySOItem, soBySOLine, isFormatB)
+  const shortages = buildShortages(calc, boSet, poByItem, soByPRD, dr4ByProd, dr5ByProd, dr4ByMain, dr5ByMain, soBySOItem, soBySOLine, isFormatB)
+  
+  // Count production orders by stage
+  const stageSummary = countStages(calc, dr4, dr5, isFormatB)
+  
+  // Attach stage summary as metadata on first item (hack) or return as separate field
+  // We'll add it as a special __meta item
+  return [{ __meta: true, stageSummary }, ...shortages]
+}
+
+function countStages(calc, dr4, dr5, isFormatB) {
+  // Get all PRDs from shortage items
+  const shortageRows = calc.filter(r => str(r['Shortage exist']).toLowerCase() === 'yes')
+  
+  const dr4ProdSet = new Set(dr4.map(r => str(r['Production order'])).filter(Boolean))
+  const dr5ProdSet = new Set(dr5.map(r => str(r['Production order'])).filter(Boolean))
+  
+  let dr5Count = 0, dr4Count = 0, prdCount = 0, directCount = 0
+  
+  if (isFormatB) {
+    // Format B: use Number column = PRD directly
+    const prdsSeen = new Set()
+    shortageRows.forEach(r => {
+      const ref = str(r['Reference'])
+      const num = str(r['Number'])
+      if (!num) return
+      
+      if (ref === 'Production line' || num.startsWith('PRD')) {
+        if (prdsSeen.has(num)) return
+        prdsSeen.add(num)
+        if (dr5ProdSet.has(num)) dr5Count++
+        else if (dr4ProdSet.has(num)) dr4Count++
+        else prdCount++ // PRD not in DR4/DR5 = direct assembly
+      } else if (ref === 'Sales order' || num.startsWith('SOIL')) {
+        // Direct purchase (raw material)
+        const item = str(r['Item number'])
+        if (item) directCount++
+      }
+    })
+    // Remove duplicates in directCount by item
+    const directItems = new Set(shortageRows
+      .filter(r => str(r['Reference']) === 'Sales order' || str(r['Number']).startsWith('SOIL'))
+      .map(r => str(r['Item number'])).filter(Boolean))
+    directCount = directItems.size
+  } else {
+    // Format A: use stage from Main component lookup (already computed)
+    // Just count from calc rows using Reference/Sales order
+    shortageRows.forEach(r => {
+      const so = str(r['Sales order'])
+      const line = str(r['Line number'])
+      if (!so) return
+      directCount++ // simplified for Format A
+    })
+  }
+  
+  return { dr5Count, dr4Count, prdCount, directCount }
 }
 
 // ─── Sheet parser ─────────────────────────────────────────────────
