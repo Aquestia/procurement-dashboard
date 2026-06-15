@@ -420,3 +420,4 @@ function buildShortages(calc, boSet, poByItem, soByPRD, dr4ByProd, dr5ByProd, dr
     }
   })
 }
+// patch marker - see full rewrite below
