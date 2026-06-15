@@ -201,16 +201,18 @@ export default function Overview({ data, loading, stageSummary }) {
 
       {/* BO by customer — full width */}
       <ChartCard title='Back Orders לפי לקוח — TOP 8'>
-        <ResponsiveContainer width='100%' height={260}>
-          <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:50, left:8, bottom:4 }}>
-            <XAxis type='number' tick={{ fontSize:11 }} />
-            <YAxis type='category' dataKey='name' tick={{ fontSize:11, fill:'#444' }} width={230} />
-            <Tooltip formatter={v => [v, 'הזמנות BO']} />
-            <Bar dataKey='count' fill='#C0392B' radius={[0,4,4,0]}>
-              <LabelList dataKey='count' position='right' style={{ fontSize:12, fill:'#333', fontWeight:600 }} />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div dir="ltr">
+          <ResponsiveContainer width='100%' height={280}>
+            <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:50, left:10, bottom:4 }}>
+              <XAxis type='number' tick={{ fontSize:11 }} />
+              <YAxis type='category' dataKey='name' tick={{ fontSize:11, fill:'#333' }} width={240} orientation='left' />
+              <Tooltip formatter={v => [v, 'הזמנות BO']} />
+              <Bar dataKey='count' fill='#C0392B' radius={[0,4,4,0]}>
+                <LabelList dataKey='count' position='right' style={{ fontSize:12, fill:'#333', fontWeight:600 }} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </ChartCard>
     </div>
   )
