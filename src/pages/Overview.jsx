@@ -150,7 +150,7 @@ export default function Overview({ data, loading, stageSummary }) {
       </div>
 
       {/* Row 2 */}
-      <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 0.9fr', gap:12, marginBottom:12 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:12, marginBottom:12 }}>
         {/* Bottlenecks */}
         <ChartCard title='צווארי בקבוק — מק"טים קריטיים'>
           <div style={{ display:'flex', flexDirection:'column', gap:6, marginTop:4 }}>
@@ -171,26 +171,7 @@ export default function Overview({ data, loading, stageSummary }) {
           </div>
         </ChartCard>
 
-        {/* Stage chart */}
-        <ChartCard title='פק"עות ממתינות לחומר — לפי שלב' onExport={() => exportStageData(stageData, data)}>
-          <ResponsiveContainer width='100%' height={140}>
-            <PieChart>
-              <Pie data={stageData} cx='50%' cy='50%' innerRadius={35} outerRadius={60} dataKey='value' nameKey='name'>
-                {stageData.map((_,i) => <Cell key={i} fill={COLORS[i]} />)}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-          <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-            {stageData.map((s,i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:6, fontSize:11 }}>
-                <div style={{ width:8, height:8, borderRadius:'50%', background:COLORS[i], flexShrink:0 }} />
-                <span style={{ flex:1, color:'#555', fontSize:10 }}>{s.name}</span>
-                <span style={{ fontWeight:600 }}>{s.value}</span>
-              </div>
-            ))}
-          </div>
-        </ChartCard>
+
 
         {/* PO Status */}
         <ChartCard title='סטטוס רכש'>
@@ -220,13 +201,14 @@ export default function Overview({ data, loading, stageSummary }) {
 
       {/* BO by customer — full width */}
       <ChartCard title='Back Orders לפי לקוח — TOP 8'>
-        <ResponsiveContainer width='100%' height={240}>
-          <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:40, left:8, bottom:4 }}>
+        <ResponsiveContainer width='100%' height={260}>
+          <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:50, left:8, bottom:4 }}>
             <XAxis type='number' tick={{ fontSize:11 }} />
-            <YAxis type='category' dataKey='name' tick={{ fontSize:11 }} width={220} />
+            <YAxis type='category' dataKey='name' tick={{ fontSize:11, fill:'#444' }} width={230} />
             <Tooltip formatter={v => [v, 'הזמנות BO']} />
-            <Bar dataKey='count' fill='#E24B4A' radius={[0,3,3,0]}>
-              <LabelList dataKey='count' position='right' style={{ fontSize:11, fill:'#555', fontWeight:600 }} />
+            <Bar dataKey='count' fill='#C0392B' radius={[0,4,4,0]}>
+              <LabelList dataKey='count' position='right' style={{ fontSize:12, fill:'#333', fontWeight:600 }} />
+              <LabelList dataKey='name' position='insideRight' style={{ fontSize:10, fill:'#fff', fontWeight:500 }} />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
