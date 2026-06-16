@@ -11,16 +11,16 @@ import FileManager from './pages/FileManager'
 
 export default function App() {
   const [activePage, setActivePage] = useState(() => localStorage.getItem('activePage') || 'overview')
-
-  function handleSetActivePage(page) {
-    localStorage.setItem('activePage', page)
-    setActivePage(page)
-  }
   const [data, setData] = useState(null)
   const [activeFile, setActiveFile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notes, setNotes] = useState({})
   const [stageSummary, setStageSummary] = useState(null)
+
+  function handleSetActivePage(page) {
+    localStorage.setItem('activePage', page)
+    setActivePage(page)
+  }
 
   useEffect(() => { loadActiveFile(); loadNotes() }, [])
 
@@ -52,42 +52,56 @@ export default function App() {
       const { data: nd } = await supabase.from('procurement_notes').select('*')
       if (nd) {
         const map = {}
-        nd.forEach(n => {
-          // Key by item_number only (sales_order and line_number are empty)
-          map[n.item_number] = n
-        })
+        nd.forEach(n => { map[n.item_number] = n })
         setNotes(map)
       }
     } catch (err) { console.error(err) }
   }
 
   async function saveNote(itemNumber, field, value) {
+    if (!itemNumber) return
+
     const existing = notes[itemNumber] || {}
-    const updated = {
-      ...existing,
-      item_number: itemNumber,
-      sales_order: '',
-      line_number: '',
-      [field]: value,
-      updated_at: new Date().toISOString(),
+    // Build fields to save
+    const fields = field === 'both' ? value : { [field]: value }
+    const toSave = {
+      note_procurement: existing.note_procurement || '',
+      note_tapi: existing.note_tapi || '',
+      treatment_status: existing.treatment_status || '',
+      ...fields,
     }
-    // Remove id field before upsert to avoid conflict
-    const { id, ...upsertData } = updated
-    const { error } = await supabase.from('procurement_notes')
-      .upsert(upsertData, { onConflict: 'item_number,sales_order,line_number' })
-    if (error) console.error('saveNote error:', error)
-    // Update local state immediately regardless of DB result
-    setNotes(prev => ({ ...prev, [itemNumber]: { ...updated } }))
+
+    // Update local state immediately
+    const localUpdated = { ...existing, ...toSave, item_number: itemNumber, sales_order: '', line_number: '' }
+    setNotes(prev => ({ ...prev, [itemNumber]: localUpdated }))
+
+    try {
+      if (existing.id) {
+        // Update existing record
+        await supabase.from('procurement_notes').update(toSave).eq('id', existing.id)
+      } else {
+        // Insert new record
+        const { data: inserted } = await supabase.from('procurement_notes').insert({
+          item_number: itemNumber,
+          sales_order: '',
+          line_number: '',
+          ...toSave,
+        }).select().single()
+        if (inserted) setNotes(prev => ({ ...prev, [itemNumber]: inserted }))
+      }
+    } catch (err) {
+      console.error('saveNote error:', err)
+    }
   }
 
   const pages = {
-    overview:       <Overview data={data} loading={loading} stageSummary={stageSummary} />,
-    procurement:    <ProcurementView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
-    tapi:           <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
-    backorders:     <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,
-    recommendations:<Recommendations data={data} notes={notes} loading={loading} />,
-    summaries:      <Summaries data={data} loading={loading} />,
-    files:          <FileManager activeFile={activeFile} onFileChange={loadActiveFile} />,
+    overview:        <Overview data={data} loading={loading} stageSummary={stageSummary} />,
+    procurement:     <ProcurementView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
+    tapi:            <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
+    backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,
+    recommendations: <Recommendations data={data} notes={notes} loading={loading} />,
+    summaries:       <Summaries data={data} loading={loading} />,
+    files:           <FileManager activeFile={activeFile} onFileChange={loadActiveFile} />,
   }
 
   return (
