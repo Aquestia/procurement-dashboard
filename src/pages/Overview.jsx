@@ -322,7 +322,7 @@ function KpiCard({ label, value, sub, color, rows, info }) {
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, color: po.deliverRemainder>0?'#185FA5':'#888' }}>{po.deliverRemainder||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder || (r.prd?.startsWith('SOIL') ? r.prd : '—')}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color: po.confirmedReceiptDate ? '#1a1a1a' : '#A32D2D' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
