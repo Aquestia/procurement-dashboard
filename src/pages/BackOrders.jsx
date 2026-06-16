@@ -25,16 +25,28 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     // סכום לפי הזמנה+שורה ייחודיים בלבד — ללא כפילויות
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
 
+    const seenKeys = new Set()
     boData.forEach(r => {
-      // אם יש סכום ב-BO sheet — השתמש בו, אחרת קח מ-Sales Remaining
       const boAmt = r.boAmount || 0
-      const salesAmt = (r.orders || []).reduce((s, o) => {
-        return s + (o.remainingAmount || 0)
-      }, 0)
-      const amt = boAmt > 0 ? boAmt : salesAmt
-      totalAll += amt
-      if (!r.hasPO) totalNoPO += amt
-      if (r.hasPO && r.hasNoDate) totalNoDate += amt
+      // For boAmount (from BO sheet) - use directly
+      if (boAmt > 0) {
+        totalAll += boAmt
+        if (!r.hasPO) totalNoPO += boAmt
+        if (r.hasPO && r.hasNoDate) totalNoDate += boAmt
+        return
+      }
+      // For items with no BO amount - sum Sales remaining per unique SO+Line
+      let salesAmt = 0
+      ;(r.orders || []).forEach(o => {
+        const key = `${o.salesOrder}-${o.lineNumber}`
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key)
+          salesAmt += (o.remainingAmount || 0)
+        }
+      })
+      totalAll += salesAmt
+      if (!r.hasPO) totalNoPO += salesAmt
+      if (r.hasPO && r.hasNoDate) totalNoDate += salesAmt
     })
 
     return {
