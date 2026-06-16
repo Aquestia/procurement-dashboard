@@ -26,11 +26,12 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
 
     boData.forEach(r => {
-      // השתמש ב-boAmount שחושב מלשונית BO
       const amt = r.boAmount || 0
-      totalAll += amt
-      if (!r.hasPO) totalNoPO += amt
-      if (r.hasPO && !r.confirmedReceiptDate) totalNoDate += amt
+      if (amt > 0 || r.isBO) {
+        totalAll += amt
+        if (!r.hasPO) totalNoPO += amt
+        if (r.hasPO && r.hasNoDate) totalNoDate += amt
+      }
     })
 
     return {
