@@ -22,17 +22,32 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   }), [boData, filterPO, search])
 
   const kpis = useMemo(() => {
+    // סכום לפי הזמנה+שורה ייחודיים בלבד — ללא כפילויות
     const seenAll = new Set(), seenNoDate = new Set(), seenNoPO = new Set()
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
+
     boData.forEach(r => {
-      r.orders?.forEach(o => {
+      // מצא את BO orders עם הזמנה+שורה ייחודיים
+      const boOrders = r.isBO ? (r.orders || []) : []
+      boOrders.forEach(o => {
+        if (!o.salesOrder) return
         const key = `${o.salesOrder}-${o.lineNumber}`
         const amt = o.remainingAmount || 0
-        if (!seenAll.has(key)) { seenAll.add(key); totalAll += amt }
-        if (!r.hasPO && !seenNoPO.has(key)) { seenNoPO.add(key); totalNoPO += amt }
-        if (r.hasPO && !r.confirmedReceiptDate && !seenNoDate.has(key)) { seenNoDate.add(key); totalNoDate += amt }
+        if (!seenAll.has(key)) {
+          seenAll.add(key)
+          totalAll += amt
+        }
+        if (!r.hasPO && !seenNoPO.has(key)) {
+          seenNoPO.add(key)
+          totalNoPO += amt
+        }
+        if (r.hasPO && !r.confirmedReceiptDate && !seenNoDate.has(key)) {
+          seenNoDate.add(key)
+          totalNoDate += amt
+        }
       })
     })
+
     return {
       total: boData.length, totalAmt: totalAll,
       noPO: boData.filter(r => !r.hasPO).length, noPOAmt: totalNoPO,
