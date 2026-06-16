@@ -117,7 +117,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
       </div>
 
       {/* Table */}
-      <div key={JSON.stringify(Object.keys(notes))} style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflow:'hidden' }}>
+      <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflow:'hidden' }}>
         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0' }}>
@@ -194,20 +194,6 @@ function NotesModal({ row, notes, onSave, onClose }) {
   const [procNote, setProcNote] = useState(notes.note_procurement || '')
   const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
   const [saving, setSaving] = useState(false)
-
-  // Sync if notes prop changes externally (e.g. after treatment_status save)
-  // But DON'T overwrite if user is actively editing
-  const notesRef = React.useRef(notes)
-  React.useEffect(() => {
-    // Only sync if notes changed from outside (not from our own saves)
-    if (notes.note_procurement !== notesRef.current.note_procurement && !saving) {
-      setProcNote(notes.note_procurement || '')
-    }
-    if (notes.note_tapi !== notesRef.current.note_tapi && !saving) {
-      setTapiNote(notes.note_tapi || '')
-    }
-    notesRef.current = notes
-  }, [notes])
 
   async function handleSave() {
     setSaving(true)
