@@ -12,7 +12,7 @@ function exportToExcel(data, filename, sheetName) {
   XLSX.writeFile(wb, filename)
 }
 
-export default function Overview({ data, loading, stageSummary }) {
+export default function Overview({ data, loading, stageSummary, financials }) {
   // ── ALL HOOKS FIRST — no early returns before this line ──
   const [expandedBottleneck, setExpandedBottleneck] = useState(null)
 
@@ -130,9 +130,9 @@ export default function Overview({ data, loading, stageSummary }) {
   if (!data || data.length === 0 || !stats) return <EmptyState />
 
   const kpiItems = [
-    { label:'סה"כ מק"טים חסרים', value:data.length,          sub:'ייחודיים',     color:'#185FA5', rows:data,
+    { label:'סה"כ מק"טים חסרים', value:data.length,          sub:financials ? `$${Math.round(financials.totalRemainingAll).toLocaleString()}` : 'ייחודיים', color:'#185FA5', rows:data,
       info:'כל המק"טים הייחודיים שמופיעים בלשונית Calculated Allocation עם Shortage = Yes. כל פריט שיש לו חוסר כלשהו, ללא קשר אם הוא BO או לא.' },
-    { label:'מק"טים BO',          value:stats.bo.length,      sub:`$${Math.round(stats.totalUSD).toLocaleString()}`, color:'#A32D2D', rows:stats.bo,
+    { label:'מק"טים BO',          value:stats.bo.length,      sub:financials ? `$${Math.round(financials.totalBO).toLocaleString()}` : `$${Math.round(stats.totalUSD).toLocaleString()}`, color:'#A32D2D', rows:stats.bo,
       info:'מק"טים שמשויכים להזמנות Back Orders — הזמנות שעבר תאריך האספקה ועדיין לא סופקו. הסכום הוא שווי ההזמנות הייחודיות בדולרים.' },
     { label:'בסכנת BO',           value:stats.danger.length,  sub:'ללא רכש',      color:'#854F0B', rows:stats.danger,
       info:'מק"טים שעדיין אינם BO, אבל אין להם הזמנת רכש פתוחה או שאין תאריך קבלה מאושר — עלולים להפוך ל-BO אם לא יטפלו בהם.' },

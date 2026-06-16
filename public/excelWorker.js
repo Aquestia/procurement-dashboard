@@ -41,9 +41,50 @@ function processExcelFile(buffer) {
   // Count production orders by stage
   const stageSummary = countStages(calc, dr4, dr5, isFormatB)
   
+  // Calculate financial totals
+  const financials = calcFinancials(calc, boSheet, openOrders, isFormatB)
+  
   // Attach stage summary as metadata on first item (hack) or return as separate field
   // We'll add it as a special __meta item
-  return [{ __meta: true, stageSummary }, ...shortages]
+  return [{ __meta: true, stageSummary, financials }, ...shortages]
+}
+
+function calcFinancials(calc, boSheet, openOrders, isFormatB) {
+  // 1. Total remaining amount for ALL shortage items
+  // From open orders: sum Remaining amount per unique SO+Line
+  const shortageItems = new Set(
+    calc.filter(r => str(r['Shortage exist']).toLowerCase() === 'yes')
+        .map(r => str(r['Item number'])).filter(Boolean)
+  )
+  
+  const seenSOLine = new Set()
+  let totalRemainingAll = 0
+  openOrders.forEach(r => {
+    const item = str(r['Item number'])
+    if (!shortageItems.has(item)) return
+    const so = str(r['Sales order'])
+    const line = str(r['Line number'])
+    const key = `${so}-${line}`
+    if (seenSOLine.has(key)) return
+    seenSOLine.add(key)
+    totalRemainingAll += num(r['Remainig amount main currency'])
+  })
+
+  // 2. BO total: sum Back Orders $ from BO sheet for shortage items only
+  const seenBOLine = new Set()
+  let totalBO = 0
+  boSheet.forEach(r => {
+    const item = str(r['Item Code'])
+    if (!shortageItems.has(item)) return
+    const doc = str(r['Doc'])
+    const line = str(r['Line'])
+    const key = `${doc}-${line}`
+    if (seenBOLine.has(key)) return
+    seenBOLine.add(key)
+    totalBO += num(r['Back Orders $'])
+  })
+
+  return { totalRemainingAll, totalBO }
 }
 
 function countStages(calc, dr4, dr5, isFormatB) {

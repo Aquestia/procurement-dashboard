@@ -16,6 +16,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [notes, setNotes] = useState({})
   const [stageSummary, setStageSummary] = useState(null)
+  const [financials, setFinancials] = useState(null)
 
   function handleSetActivePage(page) {
     localStorage.setItem('activePage', page)
@@ -40,6 +41,7 @@ export default function App() {
           const meta = all.find(r => r.__meta)
           const items = all.filter(r => !r.__meta)
           setStageSummary(meta?.stageSummary || null)
+          setFinancials(meta?.financials || null)
           setData(items)
         }
       }
@@ -95,7 +97,7 @@ export default function App() {
   }
 
   const pages = {
-    overview:        <Overview data={data} loading={loading} stageSummary={stageSummary} />,
+    overview:        <Overview data={data} loading={loading} stageSummary={stageSummary} financials={financials} />,
     procurement:     <ProcurementView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     tapi:            <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,
