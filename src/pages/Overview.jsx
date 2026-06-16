@@ -252,6 +252,8 @@ function KpiCard({ label, value, sub, color, rows, info }) {
           'סטטוס': r.procurementStatus,
           'פק"ע': r.prd||'',
           'כמות נדרשת': r.totalQtyRequired,
+          'כמות הוזמנה': po.quantity||'',
+          'יתרה': po.deliverRemainder||'',
           'הז. רכש': po.purchaseOrder||'',
           'שורת רכש': po.lineNumber||'',
           'הז. מכירה': o.salesOrder||'',
@@ -299,7 +301,7 @@ function KpiCard({ label, value, sub, color, rows, info }) {
           <div style={{ overflowX:'auto', maxHeight:300, overflowY:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:900 }}>
               <thead>
-                <tr>{['מק"ט','תיאור פריט','סטטוס','נדרש','פק"ע','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
+                <tr>{['מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 6px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
@@ -316,6 +318,8 @@ function KpiCard({ label, value, sub, color, rows, info }) {
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'top' }}><Badge status={r.procurementStatus} /></td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top' }}>{r.totalQtyRequired}</td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555', verticalAlign:'top', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>}
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.quantity||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, color: po.deliverRemainder>0?'#185FA5':'#888' }}>{po.deliverRemainder||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||'—'}</td>
