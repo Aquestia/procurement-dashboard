@@ -200,8 +200,7 @@ function NotesModal({ row, notes, onSave, onClose }) {
 
   async function handleSave() {
     setSaving(true)
-    await onSave('note_procurement', procNote)
-    await onSave('note_tapi', tapiNote)
+    await onSave('both', { note_procurement: procNote, note_tapi: tapiNote })
     setSaving(false)
     onClose()
   }
@@ -210,8 +209,7 @@ function NotesModal({ row, notes, onSave, onClose }) {
     if (!confirm('למחוק את כל ההערות?')) return
     setProcNote('')
     setTapiNote('')
-    await onSave('note_procurement', '')
-    await onSave('note_tapi', '')
+    await onSave('both', { note_procurement: '', note_tapi: '' })
     onClose()
   }
 
