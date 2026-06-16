@@ -12,12 +12,11 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('הכל')
   const [filterTreatment, setFilterTreatment] = useState('הכל')
-  const [editingRow, setEditingRow] = useState(null) // item being edited in modal
+  const [editingRow, setEditingRow] = useState(null)
 
-  if (loading) return <LoadingState />
-  if (!data || data.length === 0) return <EmptyState />
-
-  const filtered = useMemo(() => data.filter(r => {
+  const filtered = useMemo(() => {
+    if (!data || data.length === 0) return []
+    return data.filter(r => {
     if (filterStatus !== 'הכל' && r.procurementStatus !== filterStatus) return false
     if (filterTreatment !== 'הכל') {
       const n = notes[r.itemNumber]
@@ -32,8 +31,12 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         r.productName?.toLowerCase().includes(s) ||
         r.orders?.some(o => o.salesOrder?.toLowerCase().includes(s) || o.customerName?.toLowerCase().includes(s))
     }
-    return true
-  }), [data, search, filterStatus, filterTreatment, notes])
+      return true
+    })
+  }, [data, search, filterStatus, filterTreatment, notes])
+
+  if (loading) return <LoadingState />
+  if (!data || data.length === 0) return <EmptyState />
 
   function handleExport() {
     const rows = []
