@@ -241,16 +241,32 @@ function KpiCard({ label, value, sub, color, rows, info }) {
 
   function exportRows() {
     if (!rows || rows.length === 0) return
-    const exportData = rows.map(r => ({
-      'מק"ט': r.itemNumber, 'תיאור': r.productName,
-      'סטטוס': r.procurementStatus, 'שלב': r.stage, 'פק"ע': r.prd||'',
-      'מספר הזמנה': r.orders?.[0]?.salesOrder||'', 'שורה': r.orders?.[0]?.lineNumber||'',
-      'לקוח': r.orders?.[0]?.customerName||'',
-      'ת. אספקה מאושר': fmtDate(r.orders?.[0]?.confirmedShipDate),
-      'נדרש': r.totalQtyRequired, 'חוסר נטו': r.shortage,
-      'ספק': r.vendors?.join(', ')||'', 'צפי קבלה': fmtDate(r.confirmedReceiptDate),
-      'הזמנות מושפעות': r.affectedOrdersCount,
-    }))
+    const exportData = []
+    rows.forEach(r => {
+      const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
+      const ords = r.orders?.length > 0 ? r.orders : [{}]
+      pos.forEach(po => ords.forEach(o => {
+        exportData.push({
+          'מק"ט': r.itemNumber,
+          'תיאור פריט': r.productName||'',
+          'סטטוס': r.procurementStatus,
+          'פק"ע': r.prd||'',
+          'כמות נדרשת': r.totalQtyRequired,
+          'הז. רכש': po.purchaseOrder||'',
+          'שורת רכש': po.lineNumber||'',
+          'הז. מכירה': o.salesOrder||'',
+          'שורת מכירה': o.lineNumber||'',
+          'לקוח': o.customerName||'',
+          'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
+          'ת. קבלה מבוקש': fmtDate(po.requestedReceiptDate),
+          'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
+          'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
+          'ספק': po.vendorName||'',
+          'קב. רכש': po.buyerGroup||'',
+          'יתרה': po.deliverRemainder||'',
+        })
+      }))
+    })
     exportToExcel(exportData, `${label}.xlsx`, label)
   }
 
@@ -280,25 +296,35 @@ function KpiCard({ label, value, sub, color, rows, info }) {
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
             <button onClick={exportRows} style={{ fontSize:10, padding:'3px 8px', border:'0.5px solid #378ADD', borderRadius:5, background:'#378ADD', color:'#fff', cursor:'pointer' }}>ייצוא Excel</button>
           </div>
-          <div style={{ overflowX:'auto', maxHeight:250, overflowY:'auto' }}>
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+          <div style={{ overflowX:'auto', maxHeight:300, overflowY:'auto' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:900 }}>
               <thead>
-                <tr>{['מק"ט','סטטוס','שלב','נדרש','חוסר','ספק','צפי קבלה'].map(h => (
+                <tr>{['מק"ט','תיאור פריט','סטטוס','נדרש','פק"ע','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 6px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
-                {rows.slice(0,100).map((r,i) => (
-                  <tr key={i} style={{ background:i%2===0?'#fff':'#fafaf8' }}>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:500 }}>{r.itemNumber}</td>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={r.procurementStatus} /></td>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontSize:10 }}>{r.stage}</td>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{r.totalQtyRequired}</td>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', color:r.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{r.shortage}</td>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', maxWidth:100, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.vendors?.join(', ')||'—'}</td>
-                    <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(r.confirmedReceiptDate)||'—'}</td>
-                  </tr>
-                ))}
+                {rows.slice(0,200).flatMap((r,i) => {
+                  const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
+                  const ords = r.orders?.length > 0 ? r.orders : [{}]
+                  const combos = []
+                  pos.forEach(po => ords.forEach(o => combos.push({po, o})))
+                  return combos.map(({po, o}, j) => (
+                    <tr key={`${i}-${j}`} style={{ background: i%2===0?'#fff':'#fafaf8' }}>
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top', whiteSpace:'nowrap' }}>{r.itemNumber}</td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', verticalAlign:'top' }}>{r.productName||'—'}</td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'top' }}><Badge status={r.procurementStatus} /></td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top' }}>{r.totalQtyRequired}</td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555', verticalAlign:'top', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>}
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color: po.confirmedReceiptDate ? '#1a1a1a' : '#A32D2D' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
+                    </tr>
+                  ))
+                })}
               </tbody>
             </table>
           </div>
