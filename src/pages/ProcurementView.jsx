@@ -191,10 +191,23 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
 
 // ── Notes Modal ───────────────────────────────────────────────────
 function NotesModal({ row, notes, onSave, onClose }) {
-  // Initialize from notes ONCE when modal opens (don't re-sync on every render)
   const [procNote, setProcNote] = useState(notes.note_procurement || '')
   const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
   const [saving, setSaving] = useState(false)
+
+  // Sync if notes prop changes externally (e.g. after treatment_status save)
+  // But DON'T overwrite if user is actively editing
+  const notesRef = React.useRef(notes)
+  React.useEffect(() => {
+    // Only sync if notes changed from outside (not from our own saves)
+    if (notes.note_procurement !== notesRef.current.note_procurement && !saving) {
+      setProcNote(notes.note_procurement || '')
+    }
+    if (notes.note_tapi !== notesRef.current.note_tapi && !saving) {
+      setTapiNote(notes.note_tapi || '')
+    }
+    notesRef.current = notes
+  }, [notes])
 
   async function handleSave() {
     setSaving(true)

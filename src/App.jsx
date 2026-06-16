@@ -10,7 +10,12 @@ import Summaries from './pages/Summaries'
 import FileManager from './pages/FileManager'
 
 export default function App() {
-  const [activePage, setActivePage] = useState('overview')
+  const [activePage, setActivePage] = useState(() => localStorage.getItem('activePage') || 'overview')
+
+  function handleSetActivePage(page) {
+    localStorage.setItem('activePage', page)
+    setActivePage(page)
+  }
   const [data, setData] = useState(null)
   const [activeFile, setActiveFile] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -87,7 +92,7 @@ export default function App() {
 
   return (
     <div style={{ display:'flex', height:'100vh', direction:'rtl', fontFamily:'Segoe UI, Arial, sans-serif', background:'#f8f8f6' }}>
-      <Sidebar activePage={activePage} setActivePage={setActivePage} activeFile={activeFile} data={data} />
+      <Sidebar activePage={activePage} setActivePage={handleSetActivePage} activeFile={activeFile} data={data} />
       <main style={{ flex:1, overflow:'auto' }}>{pages[activePage]}</main>
     </div>
   )
