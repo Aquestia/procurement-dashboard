@@ -21,11 +21,9 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     return true
   }), [boData, filterPO, search])
 
-  // KPI calculations
   const kpis = useMemo(() => {
     const seenAll = new Set(), seenNoDate = new Set(), seenNoPO = new Set()
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
-
     boData.forEach(r => {
       r.orders?.forEach(o => {
         const key = `${o.salesOrder}-${o.lineNumber}`
@@ -35,7 +33,6 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
         if (r.hasPO && !r.confirmedReceiptDate && !seenNoDate.has(key)) { seenNoDate.add(key); totalNoDate += amt }
       })
     })
-
     return {
       total: boData.length, totalAmt: totalAll,
       noPO: boData.filter(r => !r.hasPO).length, noPOAmt: totalNoPO,
@@ -43,6 +40,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     }
   }, [boData])
 
+  // Early returns AFTER all hooks
   if (loading) return <LoadingState />
   if (!data) return <EmptyState />
 
