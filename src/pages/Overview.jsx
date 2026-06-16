@@ -80,7 +80,18 @@ export default function Overview({ data, loading, stageSummary }) {
       { name:'מאחר',         value: late.length,   color:'#E24B4A', rows: late },
     ]
 
-    const totalUSD = bo.reduce((s,r) => s + (r.totalRemainingAmount||0), 0)
+    // סכום BO — לפי הזמנה+שורה ייחודיים בלבד (למנוע כפילויות)
+    const seenOrders = new Set()
+    let totalUSD = 0
+    bo.forEach(r => {
+      r.orders?.forEach(o => {
+        const key = `${o.salesOrder}-${o.lineNumber}`
+        if (!seenOrders.has(key)) {
+          seenOrders.add(key)
+          totalUSD += (o.remainingAmount || 0)
+        }
+      })
+    })
     return { bo, danger, noPO, noDate, monthData, customerData, bottlenecks, poStatus, totalUSD }
   }, [data])
 
