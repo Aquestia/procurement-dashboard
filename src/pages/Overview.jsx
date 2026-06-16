@@ -28,18 +28,26 @@ export default function Overview({ data, loading, stageSummary }) {
     const noDate = data.filter(r => r.hasPO && r.hasNoDate)
     const late   = data.filter(r => r.isLateReceipt)
 
+    // ספירת מק"טים ייחודיים לפי חודש (לא שורות הזמנה)
     const byMonth = {}
-    data.forEach(r => r.orders?.forEach(o => {
-      if (o.confirmedShipDate) {
-        const d = new Date(o.confirmedShipDate)
-        if (!isNaN(d)) {
-          const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
-          const label = d.toLocaleDateString('he-IL', { month:'short', year:'2-digit' })
-          if (!byMonth[key]) byMonth[key] = { key, label, count: 0 }
-          byMonth[key].count++
+    data.forEach(r => {
+      const seenMonths = new Set()
+      r.orders?.forEach(o => {
+        if (o.confirmedShipDate) {
+          const s = String(o.confirmedShipDate)
+          const match = s.match(/^(\d{4})-(\d{2})/)
+          if (match) {
+            const key = `${match[1]}-${match[2]}`
+            if (seenMonths.has(key)) return // מק"ט כבר נספר בחודש זה
+            seenMonths.add(key)
+            const d = new Date(`${match[1]}-${match[2]}-01`)
+            const label = d.toLocaleDateString('he-IL', { month:'short', year:'2-digit' })
+            if (!byMonth[key]) byMonth[key] = { key, label, count: 0 }
+            byMonth[key].count++
+          }
         }
-      }
-    }))
+      })
+    })
     const monthData = Object.values(byMonth).sort((a,b) => a.key.localeCompare(b.key)).slice(0,8)
 
     const byCustomer = {}
