@@ -136,10 +136,10 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
 
               return (
                 <tr key={i} style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : row.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
-                  onClick={() => setEditingRow(row)}>
+                  onClick={e => { if (e.defaultPrevented) return; setEditingRow(row) }}>
                   {/* Treatment status */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
-                    <select value={treatment} onChange={e => saveNote(row.itemNumber, 'treatment_status', e.target.value)}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.preventDefault()}>
+                    <select value={treatment} onChange={e => { e.preventDefault(); saveNote(row.itemNumber, 'treatment_status', e.target.value) }}
                       style={{ fontSize:10, padding:'2px 5px', border:`0.5px solid ${statusOpt.border}`, borderRadius:4, background:statusOpt.bg, color:statusOpt.color, cursor:'pointer' }}>
                       {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
@@ -191,6 +191,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
 
 // ── Notes Modal ───────────────────────────────────────────────────
 function NotesModal({ row, notes, onSave, onClose }) {
+  // Initialize from notes ONCE when modal opens (don't re-sync on every render)
   const [procNote, setProcNote] = useState(notes.note_procurement || '')
   const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
   const [saving, setSaving] = useState(false)
@@ -213,8 +214,7 @@ function NotesModal({ row, notes, onSave, onClose }) {
   }
 
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}
-      onClick={onClose}>
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
         onClick={e => e.stopPropagation()}>
         
