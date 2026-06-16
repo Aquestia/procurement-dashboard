@@ -146,9 +146,12 @@ export default function TapiView({ data, notes, saveNote, loading }) {
 
   const prdDisplay = (r) => {
     const prd = r.prd || ''
-    if (prd.startsWith('SOIL') || prd.startsWith('PRD')) return ''
-    return prd
+    if (prd.startsWith('PRD')) return prd   // פק"ע הרכבה
+    if (prd.startsWith('SOIL')) return prd  // חלק חילוף
+    return '—'
   }
+
+  const firstPO = (r) => r.purchaseOrders?.[0] || {}
 
   // Best confirmed/requested dates for display
   const bestDates = (r) => {
@@ -243,7 +246,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0' }}>
-              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורה','לקוח','ת. מאושר','ת. מבוקש','נדרש','חוסר','הז. רכש','צפי קבלה','הערות'].map(h => (
+              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','לקוח','ת. מאושר','ת. מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','צפי קבלה','הערות'].map(h => (
                 <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -255,7 +258,6 @@ export default function TapiView({ data, notes, saveNote, loading }) {
               const statusOpt = STATUS_OPTIONS.find(s => s.value === treatment) || STATUS_OPTIONS[0]
               const { confirmed, requested } = bestDates(row)
               const firstOrder = row.orders?.[0]
-              const firstPO = row.purchaseOrders?.[0]
               const soVal = soDisplay(row)
               const prdVal = prdDisplay(row)
 
@@ -280,10 +282,11 @@ export default function TapiView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(requested)||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{row.totalQtyRequired}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{row.shortage}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
-                    {!row.hasPO?<span style={{color:'#A32D2D'}}>❌</span>:row.hasNoDate?<span style={{color:'#854F0B'}}>⚠️</span>:<span style={{color:'#3B6D11'}}>✅</span>}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
+                    {!row.hasPO ? <span style={{color:'#A32D2D'}}>❌</span> : firstPO(row).purchaseOrder||'—'}
                   </td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(firstPO?.confirmedReceiptDate)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(firstPO(row).confirmedReceiptDate)||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
                     <div style={{ display:'flex', gap:4 }}>
                       {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}

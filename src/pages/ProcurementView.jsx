@@ -81,19 +81,23 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
     XLSX.writeFile(wb, 'מבט_רכש.xlsx')
   }
 
+  // פק"ע / הזמנה: אם PRD → הצג PRD, אם SOIL (חלק חילוף) → הצג SOIL, אחרת ריק
   const prdDisplay = (r) => {
     const prd = r.prd || ''
-    if (prd.startsWith('SOIL')) return prd
-    if (prd.startsWith('PRD')) return '' // hide PRD, show SOIL from orders instead
-    return prd
+    if (prd.startsWith('PRD')) return prd   // פק"ע הרכבה
+    if (prd.startsWith('SOIL')) return prd  // חלק חילוף ישיר
+    return '—'
   }
 
+  // הז. מכירה: תמיד SOIL מלא
   const soDisplay = (r) => {
     const firstOrder = r.orders?.[0]
     if (firstOrder?.salesOrder) return firstOrder.salesOrder
     if (r.prd?.startsWith('SOIL')) return r.prd
     return '—'
   }
+
+  const firstPO = (r) => r.purchaseOrders?.[0] || {}
 
   return (
     <PageWrapper title='מבט רכש — חוסרים לפי מק"ט' topActions={
@@ -124,7 +128,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0' }}>
-              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','ספק','צפי קבלה','הערות'].map(h => (
+              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','שורת רכש','ספק','צפי קבלה','הערות'].map(h => (
                 <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -152,6 +156,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={row.procurementStatus} /></td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555', whiteSpace:'nowrap' }}>{prdVal||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{row.orders?.[0]?.lineNumber||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.boOrdersCount>0?'#A32D2D':'#1a1a1a', fontWeight:row.boOrdersCount>0?600:400 }}>{row.boOrdersCount}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.affectedOrdersCount}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{row.totalQtyRequired}</td>
@@ -159,9 +164,10 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalOnOrder}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalAvailable}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{row.shortage}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10 }}>
-                    {!row.hasPO ? <span style={{ color:'#A32D2D' }}>❌</span> : row.hasNoDate ? <span style={{ color:'#854F0B' }}>⚠️</span> : <span style={{ color:'#3B6D11' }}>✅</span>}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
+                    {!row.hasPO ? <span style={{ color:'#A32D2D' }}>❌</span> : firstPO(row).purchaseOrder || '—'}
                   </td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.vendors?.join(', ')||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(row.confirmedReceiptDate)||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
