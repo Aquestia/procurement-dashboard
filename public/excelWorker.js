@@ -46,7 +46,24 @@ function processExcelFile(buffer) {
   
   // Attach stage summary as metadata on first item (hack) or return as separate field
   // We'll add it as a special __meta item
-  return [{ __meta: true, stageSummary, financials }, ...shortages]
+  // Add BO amount per item from BO sheet
+  const boAmountByItem = buildBOAmountByItem(boSheet)
+  const shortagesWithBO = shortages.map(r => ({
+    ...r,
+    boAmount: boAmountByItem[r.itemNumber] || 0
+  }))
+  
+  return [{ __meta: true, stageSummary, financials }, ...shortagesWithBO]
+}
+
+function buildBOAmountByItem(boRows) {
+  const map = {}
+  boRows.forEach(r => {
+    const item = str(r['Item Code'])
+    if (!item) return
+    map[item] = (map[item] || 0) + num(r['Back Orders $'])
+  })
+  return map
 }
 
 function calcFinancials(calc, boSheet, openOrders, isFormatB) {

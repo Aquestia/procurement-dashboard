@@ -23,29 +23,14 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
 
   const kpis = useMemo(() => {
     // סכום לפי הזמנה+שורה ייחודיים בלבד — ללא כפילויות
-    const seenAll = new Set(), seenNoDate = new Set(), seenNoPO = new Set()
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
 
     boData.forEach(r => {
-      // מצא את BO orders עם הזמנה+שורה ייחודיים
-      const boOrders = r.isBO ? (r.orders || []) : []
-      boOrders.forEach(o => {
-        if (!o.salesOrder) return
-        const key = `${o.salesOrder}-${o.lineNumber}`
-        const amt = o.remainingAmount || 0
-        if (!seenAll.has(key)) {
-          seenAll.add(key)
-          totalAll += amt
-        }
-        if (!r.hasPO && !seenNoPO.has(key)) {
-          seenNoPO.add(key)
-          totalNoPO += amt
-        }
-        if (r.hasPO && !r.confirmedReceiptDate && !seenNoDate.has(key)) {
-          seenNoDate.add(key)
-          totalNoDate += amt
-        }
-      })
+      // השתמש ב-boAmount שחושב מלשונית BO
+      const amt = r.boAmount || 0
+      totalAll += amt
+      if (!r.hasPO) totalNoPO += amt
+      if (r.hasPO && !r.confirmedReceiptDate) totalNoDate += amt
     })
 
     return {
