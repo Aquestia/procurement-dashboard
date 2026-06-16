@@ -47,7 +47,10 @@ export default function App() {
       const { data: nd } = await supabase.from('procurement_notes').select('*')
       if (nd) {
         const map = {}
-        nd.forEach(n => { map[n.item_number] = n })
+        nd.forEach(n => {
+          // Key by item_number only (sales_order and line_number are empty)
+          map[n.item_number] = n
+        })
         setNotes(map)
       }
     } catch (err) { console.error(err) }
