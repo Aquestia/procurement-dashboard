@@ -26,12 +26,15 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
 
     boData.forEach(r => {
-      const amt = r.boAmount || 0
-      if (amt > 0 || r.isBO) {
-        totalAll += amt
-        if (!r.hasPO) totalNoPO += amt
-        if (r.hasPO && r.hasNoDate) totalNoDate += amt
-      }
+      // אם יש סכום ב-BO sheet — השתמש בו, אחרת קח מ-Sales Remaining
+      const boAmt = r.boAmount || 0
+      const salesAmt = (r.orders || []).reduce((s, o) => {
+        return s + (o.remainingAmount || 0)
+      }, 0)
+      const amt = boAmt > 0 ? boAmt : salesAmt
+      totalAll += amt
+      if (!r.hasPO) totalNoPO += amt
+      if (r.hasPO && r.hasNoDate) totalNoDate += amt
     })
 
     return {
