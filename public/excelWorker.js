@@ -50,7 +50,7 @@ function processExcelFile(buffer) {
   const boAmountByItem = buildBOAmountByItem(boSheet)
   const shortagesWithBO = shortages.map(r => ({
     ...r,
-    boAmount: boAmountByItem[r.itemNumber] || 0
+    boAmount: boAmountByItem[r.itemNumber?.trim()] || boAmountByItem[r.itemNumber] || 0
   }))
   
   return [{ __meta: true, stageSummary, financials }, ...shortagesWithBO]
@@ -59,9 +59,11 @@ function processExcelFile(buffer) {
 function buildBOAmountByItem(boRows) {
   const map = {}
   boRows.forEach(r => {
-    const item = str(r['Item Code'])
+    const item = str(r['Item Code']).trim()
     if (!item) return
-    map[item] = (map[item] || 0) + num(r['Back Orders $'])
+    const amt = num(r['Back Orders $'])
+    if (amt === 0) return  // skip zero amounts
+    map[item] = (map[item] || 0) + amt
   })
   return map
 }
