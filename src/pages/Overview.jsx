@@ -301,7 +301,7 @@ function KpiCard({ label, value, sub, color, rows, info }) {
           <div style={{ overflowX:'auto', maxHeight:300, overflowY:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:900 }}>
               <thead>
-                <tr>{['מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
+                <tr>{['מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע / הזמנה','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 6px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>

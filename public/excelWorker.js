@@ -112,8 +112,15 @@ function parseSheet(wb, name) {
 
 function fmtDate(v) {
   if (!v) return null
-  try { const d = v instanceof Date ? v : new Date(v); return isNaN(d) ? null : d.toISOString() }
-  catch { return null }
+  try {
+    const d = v instanceof Date ? v : new Date(v)
+    if (isNaN(d.getTime())) return null
+    // Store as YYYY-MM-DD to avoid timezone issues
+    const y = d.getFullYear()
+    const m = String(d.getMonth()+1).padStart(2,'0')
+    const day = String(d.getDate()).padStart(2,'0')
+    return `${y}-${m}-${day}`
+  } catch { return null }
 }
 function str(v)   { return v == null ? '' : String(v).trim() }
 function num(v)   { return typeof v === 'number' ? v : parseFloat(v) || 0 }

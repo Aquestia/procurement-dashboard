@@ -238,8 +238,15 @@ export function EmptyState({ message }) {
 export function fmtDate(d) {
   if (!d) return '—'
   try {
+    // Parse ISO string directly to avoid timezone offset
+    const s = String(d)
+    const match = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
+    if (match) {
+      const [, y, m, day] = match
+      return `${day}/${m}/${y}`
+    }
     const date = d instanceof Date ? d : new Date(d)
     if (isNaN(date.getTime())) return '—'
-    return date.toLocaleDateString('he-IL')
+    return `${String(date.getUTCDate()).padStart(2,'0')}/${String(date.getUTCMonth()+1).padStart(2,'0')}/${date.getUTCFullYear()}`
   } catch { return '—' }
 }
