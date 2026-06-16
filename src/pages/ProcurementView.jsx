@@ -117,7 +117,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
       </div>
 
       {/* Table */}
-      <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflow:'hidden' }}>
+      <div key={JSON.stringify(Object.keys(notes))} style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflow:'hidden' }}>
         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0' }}>

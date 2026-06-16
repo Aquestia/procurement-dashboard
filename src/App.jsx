@@ -66,9 +66,13 @@ export default function App() {
       [field]: value,
       updated_at: new Date().toISOString(),
     }
-    await supabase.from('procurement_notes')
-      .upsert(updated, { onConflict: 'item_number,sales_order,line_number' })
-    setNotes(prev => ({ ...prev, [itemNumber]: updated }))
+    // Remove id field before upsert to avoid conflict
+    const { id, ...upsertData } = updated
+    const { error } = await supabase.from('procurement_notes')
+      .upsert(upsertData, { onConflict: 'item_number,sales_order,line_number' })
+    if (error) console.error('saveNote error:', error)
+    // Update local state immediately regardless of DB result
+    setNotes(prev => ({ ...prev, [itemNumber]: { ...updated } }))
   }
 
   const pages = {
