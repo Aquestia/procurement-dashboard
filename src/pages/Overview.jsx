@@ -176,7 +176,7 @@ export default function Overview({ data, loading, stageSummary }) {
       {/* Row 2 */}
       <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:12, marginBottom:12 }}>
         {/* Bottlenecks */}
-        <ChartCard title='צווארי בקבוק — מק"טים קריטיים'>
+        <ChartCard title='צווארי בקבוק — מק"טים קריטיים' info='מק"טים שמשפיעים על הכי הרבה הזמנות. לחץ על שורה לפרטים מלאים כולל הזמנות מכירה והזמנות רכש.'>
           <div style={{ display:'flex', flexDirection:'column', gap:6, marginTop:4 }}>
             {stats.bottlenecks.map((bn,i) => (
               <div key={i}>
@@ -224,7 +224,7 @@ export default function Overview({ data, loading, stageSummary }) {
       </div>
 
       {/* BO by customer — full width */}
-      <ChartCard title='Back Orders לפי לקוח — TOP 8'>
+      <ChartCard title='Back Orders לפי לקוח — TOP 8' onExport={() => exportBOByCustomer(stats.bo)}>
         <div dir="ltr">
           <ResponsiveContainer width='100%' height={280}>
             <BarChart data={stats.customerData} layout='vertical' margin={{ top:4, right:50, left:10, bottom:4 }}>
@@ -421,11 +421,22 @@ function BottleneckPanel({ bn }) {
 }
 
 // ── Chart card ────────────────────────────────────────────────────
-function ChartCard({ title, children, onExport }) {
+function ChartCard({ title, children, onExport, info }) {
+  const [showInfo, setShowInfo] = useState(false)
   return (
-    <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, padding:14 }}>
-      <div style={{ display:'flex', alignItems:'center', marginBottom:8 }}>
+    <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, padding:14, position:'relative' }}>
+      <div style={{ display:'flex', alignItems:'center', marginBottom:8, gap:6 }}>
         <span style={{ fontSize:12, fontWeight:600, flex:1 }}>{title}</span>
+        {info && (
+          <div style={{ position:'relative' }}>
+            <button onClick={() => setShowInfo(s=>!s)} style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'#888', fontSize:10, cursor:'pointer', fontWeight:600, padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>i</button>
+            {showInfo && (
+              <div style={{ position:'absolute', top:20, left:-100, background:'#333', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}>
+                {info}
+              </div>
+            )}
+          </div>
+        )}
         {onExport && (
           <button onClick={onExport} style={{ fontSize:10, padding:'2px 8px', border:'0.5px solid #378ADD', borderRadius:5, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ Excel</button>
         )}
@@ -460,6 +471,43 @@ function exportPOStatus(poStatus) {
     })
   })
   exportToExcel(rows, 'סטטוס_רכש_מלא.xlsx', 'סטטוס רכש')
+}
+
+function exportBOByCustomer(boData) {
+  const rows = []
+  boData.forEach(r => {
+    const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
+    const ords = r.orders?.length > 0 ? r.orders : [{}]
+    ords.forEach(o => {
+      const customerName = o.customerName || ''
+      pos.forEach(po => {
+        rows.push({
+          'לקוח': customerName,
+          'מק"ט': r.itemNumber,
+          'תיאור פריט': r.productName||'',
+          'סטטוס': r.procurementStatus,
+          'פק"ע / הזמנה': r.prd||'',
+          'הז. מכירה': o.salesOrder || (r.prd?.startsWith?.('SOIL') ? r.prd : '')||'',
+          'שורת מכירה': o.lineNumber||'',
+          'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
+          'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
+          'כמות נדרשת': r.totalQtyRequired,
+          'חוסר נטו': r.shortage,
+          'הז. רכש': po.purchaseOrder||'',
+          'שורת רכש': po.lineNumber||'',
+          'ספק': po.vendorName||'',
+          'כמות הוזמנה': po.quantity||'',
+          'יתרה': po.deliverRemainder||'',
+          'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
+          'ת. קבלה מבוקש': fmtDate(po.requestedReceiptDate),
+          'קב. רכש': po.buyerGroup||'',
+        })
+      })
+    })
+  })
+  // Sort by customer
+  rows.sort((a,b) => a['לקוח'].localeCompare(b['לקוח'], 'he'))
+  exportToExcel(rows, 'BO_לפי_לקוח.xlsx', 'BO לפי לקוח')
 }
 
 function exportStageData(stageData, data) {
