@@ -404,6 +404,21 @@ function buildShortages(calc, boSet, poByItem, soByPRD, dr4ByProd, dr5ByProd, dr
       // Format B: Calc Number column = starting PRD, traverse chain to root
       for (const startPRD of item.calcPRDs) {
         if (!startPRD) continue
+        // If Number is a SOIL directly - look up in soBySOItem
+        if (startPRD.startsWith('SOIL')) {
+          const matches = soBySOItem[`${startPRD}__${item.itemNumber}`] || []
+          if (matches.length > 0) {
+            matches.forEach(o => {
+              const key = `${o.salesOrder}-${o.lineNumber}`
+              if (!allKeys.has(key)) { allKeys.add(key); allOrders.push({ ...o, prd: startPRD, sourcePRD: true }) }
+            })
+          } else {
+            // Add with just SO, no line
+            const key = `${startPRD}-`
+            if (!allKeys.has(key)) { allKeys.add(key); allOrders.push({ salesOrder: startPRD, lineNumber: '', prd: startPRD }) }
+          }
+          continue
+        }
         const roots = findRootPRDs(startPRD, dr4ByProd, dr5ByProd, soByPRD, null)
         rootPRDs.push(...roots)
         if (roots.length === 0 && soByPRD[startPRD]) rootPRDs.push(startPRD)
