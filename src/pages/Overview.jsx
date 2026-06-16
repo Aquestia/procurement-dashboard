@@ -122,11 +122,16 @@ export default function Overview({ data, loading, stageSummary }) {
   if (!data || data.length === 0 || !stats) return <EmptyState />
 
   const kpiItems = [
-    { label:'סה"כ מק"טים חסרים', value:data.length,          sub:'ייחודיים',     color:'#185FA5', rows:data },
-    { label:'מק"טים BO',          value:stats.bo.length,      sub:`$${Math.round(stats.totalUSD).toLocaleString()}`, color:'#A32D2D', rows:stats.bo },
-    { label:'בסכנת BO',           value:stats.danger.length,  sub:'ללא רכש',      color:'#854F0B', rows:stats.danger },
-    { label:'ללא הזמנת רכש',      value:stats.noPO.length,    sub:'דורש טיפול',   color:'#A32D2D', rows:stats.noPO },
-    { label:'ללא תאריך קבלה',     value:stats.noDate.length,  sub:'הזמנות פתוחות',color:'#854F0B', rows:stats.noDate },
+    { label:'סה"כ מק"טים חסרים', value:data.length,          sub:'ייחודיים',     color:'#185FA5', rows:data,
+      info:'כל המק"טים הייחודיים שמופיעים בלשונית Calculated Allocation עם Shortage = Yes. כל פריט שיש לו חוסר כלשהו, ללא קשר אם הוא BO או לא.' },
+    { label:'מק"טים BO',          value:stats.bo.length,      sub:`$${Math.round(stats.totalUSD).toLocaleString()}`, color:'#A32D2D', rows:stats.bo,
+      info:'מק"טים שמשויכים להזמנות Back Orders — הזמנות שעבר תאריך האספקה ועדיין לא סופקו. הסכום הוא שווי ההזמנות הייחודיות בדולרים.' },
+    { label:'בסכנת BO',           value:stats.danger.length,  sub:'ללא רכש',      color:'#854F0B', rows:stats.danger,
+      info:'מק"טים שעדיין אינם BO, אבל אין להם הזמנת רכש פתוחה או שאין תאריך קבלה מאושר — עלולים להפוך ל-BO אם לא יטפלו בהם.' },
+    { label:'ללא הזמנת רכש',      value:stats.noPO.length,    sub:'דורש טיפול',   color:'#A32D2D', rows:stats.noPO,
+      info:'מק"טים שיש להם חוסר אבל לא יצאה בכלל הזמנת רכש עבורם. דורש טיפול מיידי.' },
+    { label:'ללא תאריך קבלה',     value:stats.noDate.length,  sub:'הזמנות פתוחות',color:'#854F0B', rows:stats.noDate,
+      info:'מק"טים שיש להם הזמנת רכש פתוחה, אבל הספק לא אישר תאריך קבלה. יש הזמנה אבל לא ידוע מתי יגיע החומר.' },
   ]
 
   return (
@@ -230,8 +235,9 @@ export default function Overview({ data, loading, stageSummary }) {
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────
-function KpiCard({ label, value, sub, color, rows }) {
+function KpiCard({ label, value, sub, color, rows, info }) {
   const [open, setOpen] = useState(false)
+  const [showInfo, setShowInfo] = useState(false)
 
   function exportRows() {
     if (!rows || rows.length === 0) return
@@ -249,8 +255,22 @@ function KpiCard({ label, value, sub, color, rows }) {
   }
 
   return (
-    <div style={{ background:'#f4f4f0', borderRadius:8, padding:'10px 12px', cursor:'pointer' }}
+    <div style={{ background:'#f4f4f0', borderRadius:8, padding:'10px 12px', cursor:'pointer', position:'relative' }}
       onClick={() => rows && setOpen(o => !o)}>
+      {info && (
+        <div style={{ position:'absolute', top:6, left:8 }}>
+          <button
+            onClick={e => { e.stopPropagation(); setShowInfo(s => !s) }}
+            style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'#888', fontSize:10, cursor:'pointer', fontWeight:600, lineHeight:'14px', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}
+            title='מידע'>i</button>
+          {showInfo && (
+            <div style={{ position:'absolute', bottom:20, left:0, background:'#333', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}
+              onClick={e => e.stopPropagation()}>
+              {info}
+            </div>
+          )}
+        </div>
+      )}
       <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{label}</div>
       <div style={{ fontSize:22, fontWeight:600, color, lineHeight:1 }}>{value}</div>
       {sub && <div style={{ fontSize:10, color:'#999', marginTop:3 }}>{sub}</div>}
