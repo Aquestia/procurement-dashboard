@@ -113,12 +113,23 @@ function parseSheet(wb, name) {
 function fmtDate(v) {
   if (!v) return null
   try {
+    // Excel dates come as Date objects with local time midnight
+    // Use getFullYear/Month/Date (local) not UTC to avoid timezone shift
     const d = v instanceof Date ? v : new Date(v)
     if (isNaN(d.getTime())) return null
-    // Store as YYYY-MM-DD to avoid timezone issues
     const y = d.getFullYear()
     const m = String(d.getMonth()+1).padStart(2,'0')
     const day = String(d.getDate()).padStart(2,'0')
+    // Check if time is close to midnight UTC (Excel date) - if so add 12h buffer
+    const h = d.getUTCHours()
+    if (h >= 20 || h <= 4) {
+      // Shift by +12 hours to get correct local date
+      const adjusted = new Date(d.getTime() + 12*60*60*1000)
+      const y2 = adjusted.getUTCFullYear()
+      const m2 = String(adjusted.getUTCMonth()+1).padStart(2,'0')
+      const d2 = String(adjusted.getUTCDate()).padStart(2,'0')
+      return `${y2}-${m2}-${d2}`
+    }
     return `${y}-${m}-${day}`
   } catch { return null }
 }

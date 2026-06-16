@@ -256,7 +256,7 @@ function KpiCard({ label, value, sub, color, rows, info }) {
           'יתרה': po.deliverRemainder||'',
           'הז. רכש': po.purchaseOrder||'',
           'שורת רכש': po.lineNumber||'',
-          'הז. מכירה': o.salesOrder||'',
+          'הז. מכירה': o.salesOrder || (r.prd?.startsWith?.('SOIL') ? r.prd : '')||'',
           'שורת מכירה': o.lineNumber||'',
           'לקוח': o.customerName||'',
           'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
