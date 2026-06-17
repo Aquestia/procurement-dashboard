@@ -13,6 +13,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
   const [filterStatus, setFilterStatus] = useState('הכל')
   const [filterTreatment, setFilterTreatment] = useState('הכל')
   const [editingRow, setEditingRow] = useState(null)
+  const [expandedItem, setExpandedItem] = useState(null)
 
   const filtered = useMemo(() => {
     if (!data || data.length === 0) return []
