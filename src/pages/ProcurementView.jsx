@@ -142,8 +142,9 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
               const statusOpt = STATUS_OPTIONS.find(s => s.value === treatment) || STATUS_OPTIONS[0]
 
               return (
-                <tr key={i} style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : row.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
-                  onClick={e => { if (e.defaultPrevented) return; setEditingRow(row) }}>
+              <React.Fragment key={i}>
+                <tr style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : row.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
+                  onClick={() => setExpandedItem(expandedItem===row.itemNumber ? null : row.itemNumber)}>
                   {/* Treatment status */}
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.preventDefault()}>
                     <select value={treatment} onChange={e => { e.preventDefault(); saveNote(row.itemNumber, 'treatment_status', e.target.value) }}
@@ -178,7 +179,6 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                     </div>
                   </td>
                 </tr>
-                {/* Expanded PO panel */}
                 {expandedItem === row.itemNumber && (
                   <React.Fragment key={`exp-${i}`}>
                     <tr>
@@ -213,7 +213,8 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                     </tr>
                   </React.Fragment>
                 )}
-              )
+              </React.Fragment>
+            )
             })}
           </tbody>
         </table>
