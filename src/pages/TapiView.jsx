@@ -256,6 +256,11 @@ export default function TapiView({ data, notes, saveNote, loading }) {
             {filtered.map((row, i) => {
               const n = notes[row.itemNumber] || {}
               const treatment = n.treatment_status || ''
+              const statusOpt = STATUS_OPTIONS.find(s => s.value === treatment) || STATUS_OPTIONS[0]
+              const { confirmed, requested } = bestDates(row)
+              const firstOrder = row.orders?.[0]
+              const soVal = soDisplay(row)
+              const prdVal = prdDisplay(row)
 
               return (
               <React.Fragment key={i}>
