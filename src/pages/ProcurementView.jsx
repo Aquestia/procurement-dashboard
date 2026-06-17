@@ -170,14 +170,49 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.vendors?.join(', ')||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(row.confirmedReceiptDate)||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
-                    <div style={{ display:'flex', gap:4 }}>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display:'flex', gap:4, alignItems:'center' }}>
                       {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
                       {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
-                      {!n.note_procurement && !n.note_tapi && <span style={{ fontSize:10, color:'#ccc' }}>+ הוסף</span>}
+                      <button onClick={() => setEditingRow(row)} style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'0.5px solid #ddd', background:'#f4f4f0', color:'#555', cursor:'pointer' }}>✏️</button>
                     </div>
                   </td>
                 </tr>
+                {/* Expanded PO panel */}
+                {expandedItem === row.itemNumber && (
+                  <React.Fragment key={`exp-${i}`}>
+                    <tr>
+                      <td colSpan={18} style={{ padding:0, borderBottom:'0.5px solid #e5e5e0' }}>
+                        <div style={{ padding:'10px 14px', background:'#f8f8f6', direction:'rtl' }}>
+                          <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>
+                            הזמנות רכש פתוחות — {row.itemNumber} ({row.purchaseOrders?.length||0})
+                          </div>
+                          {!row.hasPO
+                            ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש פתוחות</div>
+                            : <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+                                <thead><tr>{['הז. רכש','שורה','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','סטטוס'].map(h=>(
+                                  <th key={h} style={{ background:'#f0f0ec', padding:'4px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                ))}</tr></thead>
+                                <tbody>{row.purchaseOrders?.map((po,j)=>(
+                                  <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.buyerGroup||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10 }}>{po.approvalStatus||'—'}</td>
+                                  </tr>
+                                ))}</tbody>
+                              </table>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  </React.Fragment>
+                )}
               )
             })}
           </tbody>
