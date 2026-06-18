@@ -273,6 +273,7 @@ function buildPOByItem(rows) {
       lineNumber:           str(r['Line number'] || ''),
       vendorName:           str(r['Vendor name']),
       buyerGroup:           str(r['Buyer group']),
+      voyage:               str(r['Voyage'] || ''),
       quantity:             num(r['Quantity']),
       deliverRemainder:     num(r['Deliver remainder']),
       confirmedReceiptDate: fmtDate(r['Confirmed receipt date']),
