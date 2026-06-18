@@ -70,6 +70,22 @@ export default function Sidebar({ activePage, setActivePage, activeFile, data })
           <span style={{ fontSize: 15 }}>📁</span>
           <span>ניהול קבצים</span>
         </button>
+        <button
+          onClick={() => setActivePage('import')}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            width: '100%', padding: '8px 14px',
+            background: activePage === 'import' ? '#f0f6ff' : 'transparent',
+            border: 'none',
+            borderRight: activePage === 'import' ? '3px solid #378ADD' : '3px solid transparent',
+            color: activePage === 'import' ? '#185FA5' : '#555',
+            fontWeight: activePage === 'import' ? 600 : 400,
+            fontSize: 13, cursor: 'pointer', textAlign: 'right',
+          }}
+        >
+          <span style={{ fontSize: 15 }}>📥</span>
+          <span>ייבוא הערות</span>
+        </button>
       </div>
 
       {activeFile && (
