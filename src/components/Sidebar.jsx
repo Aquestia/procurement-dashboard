@@ -4,7 +4,6 @@ const NAV_ITEMS = [
   { id: 'tapi', icon: '🔧', label: 'מבט תפ"י' },
   { id: 'backorders', icon: '⚠️', label: 'Back Orders' },
   { id: 'recommendations', icon: '💡', label: 'המלצות' },
-  { id: 'summaries', icon: '📈', label: 'סיכומים' },
 ]
 
 export default function Sidebar({ activePage, setActivePage, activeFile, data }) {
