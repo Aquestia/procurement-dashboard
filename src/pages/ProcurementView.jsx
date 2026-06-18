@@ -65,6 +65,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
           'חוסר נטו': r.shortage,
           'הז. רכש': po.purchaseOrder||'',
           'שורת רכש': po.lineNumber||'',
+          'מסלול': po.voyage||'',
           'ספק': po.vendorName||'',
           'קב. רכש': po.buyerGroup||'',
           'כמות הוזמנה': po.quantity||'',
@@ -170,6 +171,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                     {!row.hasPO ? <span style={{ color:'#A32D2D' }}>❌</span> : firstPO(row).purchaseOrder || '—'}
                   </td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.vendors?.join(', ')||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(row.confirmedReceiptDate)||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
@@ -191,13 +193,14 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                           {!row.hasPO
                             ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש פתוחות</div>
                             : <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
-                                <thead><tr>{['הז. רכש','שורה','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','סטטוס'].map(h=>(
+                                <thead><tr>{['הז. רכש','שורה','מסלול','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','סטטוס'].map(h=>(
                                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                                 ))}</tr></thead>
                                 <tbody>{row.purchaseOrders?.map((po,j)=>(
                                   <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.buyerGroup||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity||'—'}</td>
