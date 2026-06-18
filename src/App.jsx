@@ -105,6 +105,7 @@ export default function App() {
     recommendations: <Recommendations data={data} notes={notes} loading={loading} />,
     summaries:       <Summaries data={data} loading={loading} />,
     files:           <FileManager activeFile={activeFile} onFileChange={loadActiveFile} />,
+    import:          <ImportNotes onDone={loadNotes} />,
   }
 
   return (
