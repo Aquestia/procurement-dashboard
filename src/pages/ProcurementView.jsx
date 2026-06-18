@@ -14,11 +14,23 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
   const [filterTreatment, setFilterTreatment] = useState('הכל')
   const [editingRow, setEditingRow] = useState(null)
   const [expandedItem, setExpandedItem] = useState(null)
+  const [filterBuyer, setFilterBuyer] = useState('הכל')
+
+  const buyerGroups = useMemo(() => {
+    if (!data) return []
+    const s = new Set()
+    data.forEach(r => r.purchaseOrders?.forEach(po => { if (po.buyerGroup) s.add(po.buyerGroup) }))
+    return ['הכל', ...Array.from(s).sort()]
+  }, [data])
 
   const filtered = useMemo(() => {
     if (!data || data.length === 0) return []
     return data.filter(r => {
     if (filterStatus !== 'הכל' && r.procurementStatus !== filterStatus) return false
+    if (filterBuyer !== 'הכל') {
+      const hasBuyer = r.purchaseOrders?.some(po => po.buyerGroup === filterBuyer)
+      if (!hasBuyer) return false
+    }
     if (filterTreatment !== 'הכל') {
       const n = notes[r.itemNumber]
       const st = n?.treatment_status || ''
@@ -34,7 +46,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
     }
       return true
     })
-  }, [data, search, filterStatus, filterTreatment, notes])
+  }, [data, search, filterStatus, filterTreatment, filterBuyer, notes])
 
   if (loading) return <LoadingState />
   if (!data || data.length === 0) return <EmptyState />
@@ -121,6 +133,10 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         <select value={filterTreatment} onChange={e => setFilterTreatment(e.target.value)}
           style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
           {['הכל','טופל','בטיפול','לא טופל'].map(o => <option key={o}>{o}</option>)}
+        </select>
+        <select value={filterBuyer} onChange={e => setFilterBuyer(e.target.value)}
+          style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
+          {buyerGroups.map(o => <option key={o}>{o}</option>)}
         </select>
         <span style={{ fontSize:11, color:'#999', marginRight:'auto' }}>{filtered.length} מק"טים</span>
       </div>
