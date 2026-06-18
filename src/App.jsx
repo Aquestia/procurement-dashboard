@@ -8,6 +8,7 @@ import BackOrders from './pages/BackOrders'
 import Recommendations from './pages/Recommendations'
 import Summaries from './pages/Summaries'
 import FileManager from './pages/FileManager'
+import ImportNotes from './pages/ImportNotes'
 
 export default function App() {
   const [activePage, setActivePage] = useState(() => localStorage.getItem('activePage') || 'overview')
