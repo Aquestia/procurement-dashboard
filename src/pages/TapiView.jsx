@@ -22,6 +22,14 @@ export default function TapiView({ data, notes, saveNote, loading }) {
   const [search, setSearch] = useState('')
   const [editingRow, setEditingRow] = useState(null)
   const [expandedItem, setExpandedItem] = useState(null)
+  const [filterBuyer, setFilterBuyer] = useState('הכל')
+
+  const buyerGroups = useMemo(() => {
+    if (!data) return []
+    const s = new Set()
+    data.forEach(r => r.purchaseOrders?.forEach(po => { if (po.buyerGroup) s.add(po.buyerGroup) }))
+    return ['הכל', ...Array.from(s).sort()]
+  }, [data])
 
   // ── Compute available months ──
   const confirmedMonths = useMemo(() => {
@@ -62,6 +70,10 @@ export default function TapiView({ data, notes, saveNote, loading }) {
     return data.filter(r => {
       if (boFilter === 'BO בלבד' && !r.isBO) return false
       if (boFilter === 'לא BO' && r.isBO) return false
+      if (filterBuyer !== 'הכל') {
+        const hasBuyer = r.purchaseOrders?.some(po => po.buyerGroup === filterBuyer)
+        if (!hasBuyer) return false
+      }
       if (filterTreatment !== 'הכל') {
         const st = notes[r.itemNumber]?.treatment_status || ''
         if (filterTreatment === 'טופל' && st !== 'טופל') return false
@@ -97,7 +109,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
       }
       return true
     })
-  }, [data, boFilter, filterTreatment, confirmedMonth, requestedMonth, confirmedRangeActive, requestedRangeActive, confirmedFrom, confirmedTo, requestedFrom, requestedTo, search, notes])
+  }, [data, boFilter, filterTreatment, filterBuyer, confirmedMonth, requestedMonth, confirmedRangeActive, requestedRangeActive, confirmedFrom, confirmedTo, requestedFrom, requestedTo, search, notes])
 
   if (loading) return <LoadingState />
   if (!data || data.length === 0) return <EmptyState />
@@ -236,6 +248,10 @@ export default function TapiView({ data, notes, saveNote, loading }) {
         <select value={filterTreatment} onChange={e => setFilterTreatment(e.target.value)}
           style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
           {['הכל','טופל','בטיפול','לא טופל'].map(o => <option key={o}>{o}</option>)}
+        </select>
+        <select value={filterBuyer} onChange={e => setFilterBuyer(e.target.value)}
+          style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
+          {buyerGroups.map(o => <option key={o}>{o}</option>)}
         </select>
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder='חיפוש מק"ט / לקוח...'
