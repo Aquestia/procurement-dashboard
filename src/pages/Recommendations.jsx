@@ -29,7 +29,7 @@ function buildExportRows(items) {
         'סטטוס':               r.procurementStatus,
         'BO':                  r.isBO ? 'כן' : '',
         'פק"ע / הזמנה':        r.prd || '',
-        'שלב':                 r.stage || '',
+        'פק"ע':                r.prd || '',
         'הז. מכירה':           o.salesOrder || '',
         'שורת מכירה':          o.lineNumber || '',
         'לקוח':                o.customerName || '',
@@ -278,7 +278,7 @@ function DrillDown({ card, onClose }) {
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:11 }}>
           <thead>
             <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:5 }}>
-              {['BO','מק"ט','תיאור','שלב','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','קב. רכש','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','הפרש ימים'].map(h => (
+              {['BO','מק"ט','תיאור','פק"ע','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','קב. רכש','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','הפרש ימים'].map(h => (
                 <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -299,7 +299,7 @@ function DrillDown({ card, onClose }) {
                     </td>
                     <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>{r.itemNumber}</td>
                     <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.productName||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{r.stage||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>
                     <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={r.procurementStatus} /></td>
                     <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||r.prd||'—'}</td>
                     <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
