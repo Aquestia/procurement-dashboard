@@ -15,6 +15,7 @@ function exportToExcel(data, filename, sheetName) {
 export default function Overview({ data, loading, stageSummary, financials }) {
   // ── ALL HOOKS FIRST — no early returns before this line ──
   const [expandedBottleneck, setExpandedBottleneck] = useState(null)
+  const [selectedMonth, setSelectedMonth] = useState(null)
 
   const now = new Date()
   const dateStr = now.toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
@@ -103,6 +104,30 @@ export default function Overview({ data, loading, stageSummary, financials }) {
     return { bo, danger, noPO, noDate, monthData, customerData, bottlenecks, poStatus, totalUSD }
   }, [data])
 
+  const selectedMonthData = useMemo(() => {
+    if (!selectedMonth || !data) return null
+    // מק"טים של החודש הנבחר
+    const items = data.filter(r =>
+      r.orders?.some(o => o.confirmedShipDate?.startsWith(selectedMonth.key))
+    )
+    // BO לפי לקוח TOP 8
+    const boItems = items.filter(r => r.isBO)
+    const byCustomer = {}
+    boItems.forEach(r => {
+      r.orders?.filter(o => o.confirmedShipDate?.startsWith(selectedMonth.key)).forEach(o => {
+        const name = o.customerName || 'לא ידוע'
+        if (!byCustomer[name]) byCustomer[name] = { name, items: [], orders: new Set() }
+        if (o.salesOrder) byCustomer[name].orders.add(o.salesOrder)
+        if (!byCustomer[name].items.find(i => i.itemNumber === r.itemNumber))
+          byCustomer[name].items.push(r)
+      })
+    })
+    const topCustomers = Object.values(byCustomer)
+      .map(c => ({ ...c, count: c.orders.size }))
+      .sort((a,b) => b.count - a.count).slice(0, 8)
+    return { items, boItems, topCustomers }
+  }, [selectedMonth, data])
+
   const stageData = useMemo(() => {
     if (stageSummary) {
       const arr = [
@@ -160,18 +185,108 @@ export default function Overview({ data, loading, stageSummary, financials }) {
       <div style={{ marginBottom:12 }}>
         <ChartCard title='חוסרים לפי חודש אספקה מאושר'>
           <ResponsiveContainer width='100%' height={180}>
-            <BarChart data={stats.monthData} margin={{ top:16, right:8, left:-20, bottom:4 }}>
+            <BarChart data={stats.monthData} margin={{ top:16, right:8, left:-20, bottom:4 }}
+              onClick={e => {
+                if (e?.activePayload?.[0]) {
+                  const clicked = e.activePayload[0].payload
+                  setSelectedMonth(prev => prev?.key === clicked.key ? null : clicked)
+                }
+              }}
+              style={{ cursor:'pointer' }}>
               <XAxis dataKey='label' tick={{ fontSize:10 }} />
               <YAxis tick={{ fontSize:10 }} />
               <Tooltip formatter={v => [v, 'מק"טים']} />
               <Bar dataKey='count' radius={[3,3,0,0]}>
                 <LabelList dataKey='count' position='top' style={{ fontSize:10, fill:'#555' }} />
-                {stats.monthData.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]} />)}
+                {stats.monthData.map((m,i) => <Cell key={i} fill={selectedMonth?.key===m.key ? '#1a3a5c' : COLORS[i%COLORS.length]} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
+          {selectedMonth && (
+            <div style={{ fontSize:11, color:'#378ADD', marginTop:4, textAlign:'center' }}>
+              לחץ שוב על העמודה לביטול הסינון
+            </div>
+          )}
         </ChartCard>
       </div>
+
+      {/* Month drill-down panel */}
+      {selectedMonth && selectedMonthData && (
+        <div style={{ background:'#fff', border:'1.5px solid #378ADD', borderRadius:10, padding:16, marginBottom:12 }}>
+          <div style={{ display:'flex', alignItems:'center', marginBottom:12 }}>
+            <h3 style={{ fontSize:14, fontWeight:600, flex:1, margin:0 }}>
+              📅 {selectedMonth.label} — {selectedMonthData.items.length} מק"טים ({selectedMonthData.boItems.length} BO)
+            </h3>
+            <button onClick={() => setSelectedMonth(null)}
+              style={{ fontSize:12, padding:'3px 10px', border:'0.5px solid #ddd', borderRadius:6, background:'transparent', color:'#888', cursor:'pointer' }}>✕ סגור</button>
+          </div>
+
+          {/* TOP 8 BO לפי לקוח */}
+          {selectedMonthData.topCustomers.length > 0 && (
+            <div style={{ marginBottom:16 }}>
+              <div style={{ fontSize:12, fontWeight:600, color:'#A32D2D', marginBottom:8 }}>🔴 Back Orders לפי לקוח — TOP 8</div>
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+                {selectedMonthData.topCustomers.map((c,i) => (
+                  <div key={i} style={{ background:'#FCEBEB', border:'0.5px solid #F09595', borderRadius:8, padding:'8px 14px', minWidth:140 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#A32D2D' }}>{c.name}</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#A32D2D', marginTop:2 }}>{c.count} הזמנות</div>
+                    <div style={{ fontSize:10, color:'#888', marginTop:1 }}>{c.items.length} מק"טים</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* טבלת כל המק"טים */}
+          <div style={{ fontSize:12, fontWeight:600, color:'#555', marginBottom:6 }}>כל המק"טים בחודש זה</div>
+          <div style={{ overflowX:'auto', maxHeight:360, overflowY:'auto', border:'0.5px solid #e5e5e0', borderRadius:8 }}>
+            <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:11 }}>
+              <thead>
+                <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:5 }}>
+                  {['BO','מק"ט','תיאור מוצר','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה'].map(h => (
+                    <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {selectedMonthData.items.flatMap((r,i) => {
+                  const ords = r.orders?.filter(o => o.confirmedShipDate?.startsWith(selectedMonth.key))
+                  const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
+                  const rows = []
+                  const ordList = ords?.length > 0 ? ords : [{}]
+                  ordList.forEach((o,oi) => {
+                    pos.forEach((po,pi) => {
+                      rows.push(
+                        <tr key={`${i}-${oi}-${pi}`} style={{ background: r.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8' }}>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', textAlign:'center' }}>
+                            {r.isBO ? <span style={{ color:'#A32D2D', fontWeight:700, fontSize:10 }}>BO</span> : ''}
+                          </td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>{r.itemNumber}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.productName||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={r.procurementStatus} /></td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||r.prd||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{r.totalQtyRequired}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', color:r.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{r.shortage}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
+                        </tr>
+                      )
+                    })
+                  })
+                  return rows
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Row 2 */}
       <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:12, marginBottom:12 }}>
