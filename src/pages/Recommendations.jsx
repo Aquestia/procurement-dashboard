@@ -90,8 +90,8 @@ export default function Recommendations({ data, notes, loading }) {
       })
     }))
 
-    // 5. הזמנות בסיכון PRD — מק"ט עבור PRD, הפרש ≤ 10 ימים (לא BO)
-    const riskPRD = data.filter(r => !r.isBO && r.stage?.includes('PRD') || (!r.isBO && r.prd?.startsWith('PRD')))
+    // 5. הזמנות בסיכון PRD — מק"ט עבור PRD בלבד (לא SOIL), הפרש ≤ 10 ימים (לא BO)
+    const riskPRD = data.filter(r => !r.isBO && r.prd?.startsWith('PRD'))
       .filter(r => r.purchaseOrders?.some(po => {
         if (!po.confirmedReceiptDate) return false
         return r.orders?.some(o => {
@@ -101,8 +101,8 @@ export default function Recommendations({ data, notes, loading }) {
         })
       }))
 
-    // 6. הזמנות בסיכון PRD — BO
-    const riskPRD_BO = data.filter(r => r.isBO && (r.stage?.includes('PRD') || r.prd?.startsWith('PRD')))
+    // 6. הזמנות בסיכון PRD — BO, רק מק"טים שה-prd מתחיל ב-PRD
+    const riskPRD_BO = data.filter(r => r.isBO && r.prd?.startsWith('PRD'))
       .filter(r => r.purchaseOrders?.some(po => {
         if (!po.confirmedReceiptDate) return false
         return r.orders?.some(o => {
