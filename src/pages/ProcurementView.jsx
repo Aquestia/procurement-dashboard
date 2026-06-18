@@ -130,7 +130,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
-              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','שורת רכש','ספק','צפי קבלה','הערות'].map(h => (
+              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה','הערות'].map(h => (
                 <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0' }}>{h}</th>
               ))}
             </tr>
