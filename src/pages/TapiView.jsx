@@ -123,6 +123,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
           'כמות נדרשת': r.totalQtyRequired,
           'חוסר נטו': r.shortage,
           'הז. רכש': po.purchaseOrder || '',
+          'מסלול': po.voyage || '',
           'ספק': po.vendorName || '',
           'כמות הוזמנה': po.quantity || '',
           'יתרה': po.deliverRemainder || '',
@@ -247,7 +248,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
-              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','לקוח','ת. מאושר','ת. מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','צפי קבלה','הערות'].map(h => (
+              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','לקוח','ת. מאושר','ת. מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','צפי קבלה','הערות'].map(h => (
                 <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0' }}>{h}</th>
               ))}
             </tr>
@@ -288,6 +289,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
                     {!row.hasPO ? <span style={{color:'#A32D2D'}}>❌</span> : firstPO(row).purchaseOrder||'—'}
                   </td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(firstPO(row).confirmedReceiptDate)||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display:'flex', gap:4, alignItems:'center' }}>
@@ -308,13 +310,14 @@ export default function TapiView({ data, notes, saveNote, loading }) {
                           {!row.hasPO
                             ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש פתוחות</div>
                             : <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
-                                <thead><tr>{['הז. רכש','שורה','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','סטטוס'].map(h=>(
+                                <thead><tr>{['הז. רכש','שורה','מסלול','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','סטטוס'].map(h=>(
                                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                                 ))}</tr></thead>
                                 <tbody>{row.purchaseOrders?.map((po,j)=>(
                                   <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.buyerGroup||'—'}</td>
                                     <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity||'—'}</td>
