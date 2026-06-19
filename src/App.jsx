@@ -8,6 +8,7 @@ import BackOrders from './pages/BackOrders'
 import Recommendations from './pages/Recommendations'
 import FileManager from './pages/FileManager'
 import ImportNotes from './pages/ImportNotes'
+import AdminPinGate from './components/AdminPinGate'
 
 export default function App() {
   const [activePage, setActivePage] = useState(() => localStorage.getItem('activePage') || 'overview')
@@ -102,8 +103,12 @@ export default function App() {
     tapi:            <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     recommendations: <Recommendations data={data} notes={notes} loading={loading} />,
-    files:           <FileManager activeFile={activeFile} onFileChange={loadActiveFile} />,
-    import:          <ImportNotes onDone={loadNotes} />,
+    files:           adminUnlocked
+      ? <FileManager activeFile={activeFile} onFileChange={loadActiveFile} />
+      : <AdminPinGate onUnlock={() => setAdminUnlocked(true)} />,
+    import:          adminUnlocked
+      ? <ImportNotes onDone={loadNotes} />
+      : <AdminPinGate onUnlock={() => setAdminUnlocked(true)} />,
   }
 
   return (
