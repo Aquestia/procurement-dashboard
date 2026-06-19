@@ -18,6 +18,8 @@ export default function App() {
   const [notes, setNotes] = useState({})
   const [stageSummary, setStageSummary] = useState(null)
   const [financials, setFinancials] = useState(null)
+  const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === '1')
+  const [showChangePin, setShowChangePin] = useState(false)
 
   function handleSetActivePage(page) {
     localStorage.setItem('activePage', page)
