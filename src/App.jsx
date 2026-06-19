@@ -115,8 +115,8 @@ export default function App() {
 
   return (
     <div style={{ display:'flex', height:'100vh', direction:'rtl', fontFamily:'Segoe UI, Arial, sans-serif', background:'#f8f8f6' }}>
-      <Sidebar activePage={activePage} setActivePage={handleSetActivePage} activeFile={activeFile} data={data} />
-      <main style={{ flex:1, overflow:'auto' }}>{pages[activePage]}</main>
+      <Sidebar activePage={activePage} setActivePage={handleSetActivePage} activeFile={activeFile} data={data} adminUnlocked={adminUnlocked} onLock={() => { setAdminUnlocked(false); sessionStorage.removeItem('admin_unlocked') }} onChangePinClick={() => setShowChangePin(s => !s)} />
+      <main style={{ flex:1, overflow:'auto' }}>{showChangePin && adminUnlocked && (<div style={{ padding:'16px 24px 0' }}><ChangePinPanel onClose={() => setShowChangePin(false)} /></div>)}{pages[activePage]}</main>
     </div>
   )
 }
