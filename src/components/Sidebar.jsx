@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { id: 'recommendations', icon: '💡', label: 'המלצות' },
 ]
 
-export default function Sidebar({ activePage, setActivePage, activeFile, data }) {
+export default function Sidebar({ activePage, setActivePage, activeFile, data, adminUnlocked, onLock, onChangePinClick }) {
   const boCount = data?.filter(r => r.isBO)?.length || 0
 
   return (
@@ -94,6 +94,14 @@ export default function Sidebar({ activePage, setActivePage, activeFile, data })
           <div style={{ fontSize: 10, color: '#aaa', marginTop: 2 }}>
             {new Date(activeFile.uploaded_at).toLocaleDateString('he-IL')}
           </div>
+        </div>
+      )}
+      {adminUnlocked && (
+        <div style={{ padding:'8px 14px', borderTop:'0.5px solid #e5e5e0', display:'flex', gap:6 }}>
+          <button onClick={onChangePinClick}
+            style={{ flex:1, fontSize:11, padding:'5px', border:'0.5px solid #ddd', borderRadius:6, background:'transparent', color:'#555', cursor:'pointer' }}>🔑 שנה PIN</button>
+          <button onClick={() => { sessionStorage.removeItem('admin_unlocked'); onLock() }}
+            style={{ fontSize:11, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'transparent', color:'#888', cursor:'pointer' }}>🔒</button>
         </div>
       )}
     </aside>
