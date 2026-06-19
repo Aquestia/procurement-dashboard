@@ -8,7 +8,7 @@ import BackOrders from './pages/BackOrders'
 import Recommendations from './pages/Recommendations'
 import FileManager from './pages/FileManager'
 import ImportNotes from './pages/ImportNotes'
-import AdminPinGate from './components/AdminPinGate'
+import AdminPinGate, { ChangePinPanel } from './components/AdminPinGate'
 
 export default function App() {
   const [activePage, setActivePage] = useState(() => localStorage.getItem('activePage') || 'overview')
