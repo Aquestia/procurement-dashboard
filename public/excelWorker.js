@@ -200,16 +200,17 @@ function lineN(v) { if (!v) return ''; const s = str(v); const f = parseFloat(s)
 
 // ─── BO set ───────────────────────────────────────────────────────
 function buildBOSet(rows) {
-  const items = new Set(), orders = new Set()
+  const items = new Set(), orders = new Set(), docs = new Set()
   rows.forEach(r => {
     const item = str(r['Item Code'])
     const doc  = str(r['Doc'])
     const line = lineN(r['Line'])
     if (item) items.add(item)
+    if (doc) docs.add(doc)
     if (doc && line) orders.add(`${doc}-${line}`)
     if (doc && item) orders.add(`${doc}__${item}`)
   })
-  return { items, orders }
+  return { items, orders, docs }
 }
 
 // ─── Sales order lookups ──────────────────────────────────────────
@@ -457,6 +458,27 @@ function buildShortages(calc, boSet, poByItem, soByPRD, dr4ByProd, dr5ByProd, dr
   })
 
   return Object.values(itemMap).map(item => {
+    // ─── Check if root SO is BO ─────────────────────────────────
+    // For PRD items: check if the root SOIL is in BO docs
+    let isPRDBO = false
+    if (isFormatB) {
+      for (const startPRD of item.calcPRDs) {
+        if (startPRD.startsWith('SOIL') && boSet.docs.has(startPRD)) { isPRDBO = true; break }
+        if (startPRD.startsWith('PRD')) {
+          const roots = findRootPRDs(startPRD, dr4ByProd, dr5ByProd, soByPRD, null)
+          for (const root of roots) {
+            const soRows = soByPRD[root] || []
+            for (const o of soRows) {
+              if (boSet.docs.has(o.salesOrder)) { isPRDBO = true; break }
+            }
+            if (isPRDBO) break
+          }
+        }
+        if (isPRDBO) break
+      }
+    }
+    if (isPRDBO) item.isBO = true
+
     // ─── Find orders ─────────────────────────────────────────────
     let rootPRDs = []
     const allOrders = []
