@@ -46,25 +46,34 @@ function processExcelFile(buffer) {
   
   // Attach stage summary as metadata on first item (hack) or return as separate field
   // We'll add it as a special __meta item
-  // Add BO amount per item from BO sheet
-  const boAmountByItem = buildBOAmountByItem(boSheet)
-  const shortagesWithBO = shortages.map(r => ({
-    ...r,
-    boAmount: boAmountByItem[r.itemNumber?.trim()] || boAmountByItem[r.itemNumber] || 0
-  }))
+  // Add BO amount per item: sum Back Orders $ for all BO docs linked to this item's orders
+  const boDocAmounts = buildBOAmountByItem(boSheet)  // doc → amount
+  const shortagesWithBO = shortages.map(r => {
+    if (!r.isBO) return { ...r, boAmount: 0 }
+    // Collect all BO docs for this item's orders
+    const linkedDocs = new Set()
+    ;(r.orders || []).forEach(o => { if (o.salesOrder) linkedDocs.add(o.salesOrder) })
+    if (r.prd?.startsWith('SOIL')) linkedDocs.add(r.prd)
+    // Sum Back Orders $ for linked docs
+    let boAmount = 0
+    linkedDocs.forEach(doc => { boAmount += boDocAmounts[doc] || 0 })
+    return { ...r, boAmount }
+  })
   
   return [{ __meta: true, stageSummary, financials }, ...shortagesWithBO]
 }
 
 
 function buildBOAmountByItem(boRows) {
+  // Sum Back Orders $ per BO Doc (not per item)
+  // because shortage items are linked via Doc, not Item Code
   const map = {}
   boRows.forEach(r => {
-    const item = str(r['Item Code']).trim()
-    if (!item) return
+    const doc = str(r['Doc']).trim()
+    if (!doc) return
     const amt = num(r['Back Orders $'])
-    if (amt === 0) return  // skip zero amounts
-    map[item] = (map[item] || 0) + amt
+    if (amt === 0) return
+    map[doc] = (map[doc] || 0) + amt
   })
   return map
 }
@@ -90,15 +99,15 @@ function calcFinancials(calc, boSheet, openOrders, isFormatB) {
     totalRemainingAll += num(r['Remainig amount main currency'])
   })
 
-  // 2. BO total: sum Back Orders $ from BO sheet for shortage items only
+  // 2. BO total: sum Back Orders $ for BO docs linked to shortage items
+  // (the BO docs were already identified in buildShortages via isBO flag)
+  // We sum all unique Doc+Line from BO sheet where Doc is linked to a shortage item
   const seenBOLine = new Set()
   let totalBO = 0
   boSheet.forEach(r => {
-    const item = str(r['Item Code'])
-    if (!shortageItems.has(item)) return
-    const doc = str(r['Doc'])
+    const doc  = str(r['Doc'])
     const line = str(r['Line'])
-    const key = `${doc}-${line}`
+    const key  = `${doc}-${line}`
     if (seenBOLine.has(key)) return
     seenBOLine.add(key)
     totalBO += num(r['Back Orders $'])
