@@ -42,7 +42,7 @@ function processExcelFile(buffer) {
   const stageSummary = countStages(calc, dr4, dr5, isFormatB)
   
   // Calculate financial totals
-  const financials = calcFinancials(calc, boSheet, openOrders, isFormatB)
+  const financials = calcFinancials(calc, boSheet, openOrders, isFormatB, dr4ByProd, dr5ByProd)
   
   // Attach stage summary as metadata on first item (hack) or return as separate field
   // We'll add it as a special __meta item
@@ -106,62 +106,65 @@ function buildBOAmountByItem(boRows) {
   return map
 }
 
-function calcFinancials(calc, boSheet, openOrders, isFormatB) {
+function calcFinancials(calc, boSheet, openOrders, isFormatB, dr4ByProd, dr5ByProd) {
   const boDocs = new Set(boSheet.map(r => str(r['Doc'])).filter(Boolean))
 
-  // Sales index: "SO|line" → remaining amount (keep full line number as string)
-  const salesIndex = {}
-  // Sales: PRD_AB → (SO, line_key)
-  const salesByPRD = {}
+  // Build lookups from Sales
+  const salesBySOItem = {}  // SO|item → amount
+  const salesBySOLine = {}  // SO|line → amount
+  const salesByPRD    = {}  // prd_ab → {so, line}
+
   openOrders.forEach(r => {
     const so   = str(r['Sales order'])
     const line = str(r['Line number'])
+    const item = str(r['Item number'])
     const prd  = str(r['Production'])
-    const key  = `${so}|${line}`
-    if (!salesIndex[key]) salesIndex[key] = num(r['Remainig amount main currency'])
-    if (prd && prd !== 'nan' && !salesByPRD[prd]) salesByPRD[prd] = key
+    const amt  = num(r['Remainig amount main currency'])
+    const kItem = `${so}|${item}`
+    const kLine = `${so}|${line}`
+    if (!salesBySOItem[kItem]) salesBySOItem[kItem] = amt
+    if (!salesBySOLine[kLine]) salesBySOLine[kLine] = amt
+    if (prd && prd !== 'nan' && !salesByPRD[prd]) salesByPRD[prd] = { so, line }
   })
+
+  function findRootPRD(prd, depth) {
+    if (!prd || depth > 7) return null
+    if (salesByPRD[prd]) return prd
+    const parent = (dr4ByProd && dr4ByProd[prd]) || (dr5ByProd && dr5ByProd[prd])
+    return parent ? findRootPRD(parent, depth + 1) : null
+  }
 
   const seenAll = new Set()
   const seenBO  = new Set()
 
   calc.filter(r => str(r['Shortage exist']).toLowerCase() === 'yes').forEach(r => {
+    const item   = str(r['Item number']).trim()
     const numVal = str(r['Number']).trim()
-    let soLineKey = null
-    let rootSO    = null
 
     if (numVal.startsWith('SOIL')) {
-      rootSO = numVal
-      // Find all SO+Lines for this SO
-      Object.keys(salesIndex).forEach(k => {
-        if (k.startsWith(numVal + '|')) {
-          seenAll.add(k)
-          if (boDocs.has(numVal)) seenBO.add(k)
-        }
-      })
-      return
-    }
-
-    if (numVal.startsWith('PRD')) {
-      // Find the root PRD that appears in Sales Production column
-      let prd = numVal
-      let depth = 0
-      while (prd && depth < 7) {
-        if (salesByPRD[prd]) { soLineKey = salesByPRD[prd]; break }
-        // go up the chain (simplified — check dr4/dr5 not available here, use soByPRD)
-        break
-      }
-      if (!soLineKey) return
-      // Get SO from key
-      rootSO = soLineKey.split('|')[0]
-      seenAll.add(soLineKey)
-      if (boDocs.has(rootSO)) seenBO.add(soLineKey)
+      // SOIL direct: use SO+Item key
+      const k = `${numVal}|${item}`
+      seenAll.add(k)
+      if (boDocs.has(numVal)) seenBO.add(k)
+    } else if (numVal.startsWith('PRD')) {
+      // PRD: traverse to root PRD in Sales
+      const rootPRD = findRootPRD(numVal, 0)
+      if (!rootPRD) return
+      const { so, line } = salesByPRD[rootPRD]
+      const k = `${so}|${line}`
+      seenAll.add(k)
+      if (boDocs.has(so)) seenBO.add(k)
     }
   })
 
   let totalRemainingAll = 0, totalBO = 0
-  seenAll.forEach(k => { totalRemainingAll += salesIndex[k] || 0 })
-  seenBO.forEach(k  => { totalBO           += salesIndex[k] || 0 })
+  seenAll.forEach(k => {
+    // Try SO|item first, then SO|line
+    totalRemainingAll += salesBySOItem[k] || salesBySOLine[k] || 0
+  })
+  seenBO.forEach(k => {
+    totalBO += salesBySOItem[k] || salesBySOLine[k] || 0
+  })
 
   return { totalRemainingAll, totalBO }
 }
