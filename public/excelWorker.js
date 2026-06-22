@@ -59,11 +59,21 @@ function processExcelFile(buffer) {
     if (!r.isBO) return { ...r, boAmount: 0 }
     const seenKeys = new Set()
     let boAmount = 0
+    // Use the specific linked SO+Line (from orders), not all lines of the SO
     ;(r.orders || []).forEach(o => {
+      if (!o.salesOrder || !o.lineNumber) return
+      // Try exact line match first
       const key = `${o.salesOrder}|${o.lineNumber}`
       if (!seenKeys.has(key)) {
         seenKeys.add(key)
-        boAmount += salesAmountIndex[key] || 0
+        const amt = salesAmountIndex[key] || 0
+        if (amt > 0) { boAmount += amt; return }
+        // Try with float representation
+        const keyF = `${o.salesOrder}|${parseFloat(o.lineNumber)}`
+        if (!seenKeys.has(keyF) && salesAmountIndex[keyF]) {
+          seenKeys.add(keyF)
+          boAmount += salesAmountIndex[keyF] || 0
+        }
       }
     })
     return { ...r, boAmount }
