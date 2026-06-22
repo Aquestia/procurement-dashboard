@@ -46,13 +46,12 @@ function processExcelFile(buffer) {
   
   // Attach stage summary as metadata on first item (hack) or return as separate field
   // We'll add it as a special __meta item
-  // boAmount per item: sum Sales Remaining amount for linked SO+Lines
-  // Build Sales index from openOrders
+  // boAmount per item: sum Sales Remaining for linked SO+Lines (unique)
   const salesAmountIndex = {}
   openOrders.forEach(r => {
     const so   = str(r['Sales order'])
-    const line = str(r['Line number']).split('.')[0]
-    const key  = `${so}-${line}`
+    const line = str(r['Line number'])
+    const key  = `${so}|${line}`
     if (!salesAmountIndex[key]) salesAmountIndex[key] = num(r['Remainig amount main currency'])
   })
 
@@ -61,7 +60,7 @@ function processExcelFile(buffer) {
     const seenKeys = new Set()
     let boAmount = 0
     ;(r.orders || []).forEach(o => {
-      const key = `${o.salesOrder}-${o.lineNumber}`
+      const key = `${o.salesOrder}|${o.lineNumber}`
       if (!seenKeys.has(key)) {
         seenKeys.add(key)
         boAmount += salesAmountIndex[key] || 0
@@ -89,58 +88,61 @@ function buildBOAmountByItem(boRows) {
 }
 
 function calcFinancials(calc, boSheet, openOrders, isFormatB) {
-  // Build: SO → is BO (appears in BO Doc column)
   const boDocs = new Set(boSheet.map(r => str(r['Doc'])).filter(Boolean))
-  
-  // Build Sales index: SO-Line → remaining amount
+
+  // Sales index: "SO|line" → remaining amount (keep full line number as string)
   const salesIndex = {}
+  // Sales: PRD_AB → (SO, line_key)
+  const salesByPRD = {}
   openOrders.forEach(r => {
     const so   = str(r['Sales order'])
-    const line = str(r['Line number']).split('.')[0]
-    const key  = `${so}-${line}`
+    const line = str(r['Line number'])
+    const prd  = str(r['Production'])
+    const key  = `${so}|${line}`
     if (!salesIndex[key]) salesIndex[key] = num(r['Remainig amount main currency'])
-  })
-
-  // Collect all shortage Numbers (SOIL/PRD)
-  const shortageNumbers = calc
-    .filter(r => str(r['Shortage exist']).toLowerCase() === 'yes')
-    .map(r => str(r['Number']).trim())
-    .filter(Boolean)
-
-  // For each Number, find its root SO in Sales
-  const soByProd = {}
-  openOrders.forEach(r => {
-    const prod = str(r['Production'])
-    const so   = str(r['Sales order'])
-    if (prod && !soByProd[prod]) soByProd[prod] = so
+    if (prd && prd !== 'nan' && !salesByPRD[prd]) salesByPRD[prd] = key
   })
 
   const seenAll = new Set()
   const seenBO  = new Set()
 
-  shortageNumbers.forEach(num_val => {
-    let rootSO = null
-    if (num_val.startsWith('SOIL')) {
-      rootSO = num_val
-    } else if (num_val.startsWith('PRD')) {
-      rootSO = soByProd[num_val] || null
-    }
-    if (!rootSO) return
-    const isBO = boDocs.has(rootSO)
+  calc.filter(r => str(r['Shortage exist']).toLowerCase() === 'yes').forEach(r => {
+    const numVal = str(r['Number']).trim()
+    let soLineKey = null
+    let rootSO    = null
 
-    // Sum all SO+Lines for this SO from Sales
-    Object.keys(salesIndex).forEach(key => {
-      if (key.startsWith(rootSO + '-')) {
-        seenAll.add(key)
-        if (isBO) seenBO.add(key)
+    if (numVal.startsWith('SOIL')) {
+      rootSO = numVal
+      // Find all SO+Lines for this SO
+      Object.keys(salesIndex).forEach(k => {
+        if (k.startsWith(numVal + '|')) {
+          seenAll.add(k)
+          if (boDocs.has(numVal)) seenBO.add(k)
+        }
+      })
+      return
+    }
+
+    if (numVal.startsWith('PRD')) {
+      // Find the root PRD that appears in Sales Production column
+      let prd = numVal
+      let depth = 0
+      while (prd && depth < 7) {
+        if (salesByPRD[prd]) { soLineKey = salesByPRD[prd]; break }
+        // go up the chain (simplified — check dr4/dr5 not available here, use soByPRD)
+        break
       }
-    })
+      if (!soLineKey) return
+      // Get SO from key
+      rootSO = soLineKey.split('|')[0]
+      seenAll.add(soLineKey)
+      if (boDocs.has(rootSO)) seenBO.add(soLineKey)
+    }
   })
 
-  let totalRemainingAll = 0
-  let totalBO = 0
-  seenAll.forEach(key => { totalRemainingAll += salesIndex[key] || 0 })
-  seenBO.forEach(key  => { totalBO           += salesIndex[key] || 0 })
+  let totalRemainingAll = 0, totalBO = 0
+  seenAll.forEach(k => { totalRemainingAll += salesIndex[k] || 0 })
+  seenBO.forEach(k  => { totalBO           += salesIndex[k] || 0 })
 
   return { totalRemainingAll, totalBO }
 }
