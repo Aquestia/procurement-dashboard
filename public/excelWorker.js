@@ -47,33 +47,42 @@ function processExcelFile(buffer) {
   // Attach stage summary as metadata on first item (hack) or return as separate field
   // We'll add it as a special __meta item
   // boAmount per item: sum Sales Remaining for linked SO+Lines (unique)
-  const salesAmountIndex = {}
+  // Build two indexes:
+  // 1. SO+Item → remaining (for SOIL direct items)
+  // 2. SO+Line → remaining (for PRD items)
+  const salesAmountBySOItem = {}
+  const salesAmountBySOLine = {}
   openOrders.forEach(r => {
     const so   = str(r['Sales order'])
     const line = str(r['Line number'])
-    const key  = `${so}|${line}`
-    if (!salesAmountIndex[key]) salesAmountIndex[key] = num(r['Remainig amount main currency'])
+    const item = str(r['Item number'])
+    const amt  = num(r['Remainig amount main currency'])
+    const keyLine = `${so}|${line}`
+    const keyItem = `${so}|${item}`
+    if (!salesAmountBySOLine[keyLine]) salesAmountBySOLine[keyLine] = amt
+    if (!salesAmountBySOItem[keyItem]) salesAmountBySOItem[keyItem] = amt
   })
 
   const shortagesWithBO = shortages.map(r => {
     if (!r.isBO) return { ...r, boAmount: 0 }
     const seenKeys = new Set()
     let boAmount = 0
-    // Use the specific linked SO+Line (from orders), not all lines of the SO
     ;(r.orders || []).forEach(o => {
-      if (!o.salesOrder || !o.lineNumber) return
-      // Try exact line match first
-      const key = `${o.salesOrder}|${o.lineNumber}`
-      if (!seenKeys.has(key)) {
-        seenKeys.add(key)
-        const amt = salesAmountIndex[key] || 0
-        if (amt > 0) { boAmount += amt; return }
-        // Try with float representation
-        const keyF = `${o.salesOrder}|${parseFloat(o.lineNumber)}`
-        if (!seenKeys.has(keyF) && salesAmountIndex[keyF]) {
-          seenKeys.add(keyF)
-          boAmount += salesAmountIndex[keyF] || 0
+      if (!o.salesOrder) return
+      // Try SO+Line first (for PRD items with known line)
+      if (o.lineNumber && o.lineNumber !== '') {
+        const keyLine = `${o.salesOrder}|${o.lineNumber}`
+        if (!seenKeys.has(keyLine)) {
+          seenKeys.add(keyLine)
+          const amt = salesAmountBySOLine[keyLine] || 0
+          if (amt > 0) { boAmount += amt; return }
         }
+      }
+      // Fallback: SO+ItemNumber (for SOIL direct)
+      const keyItem = `${o.salesOrder}|${r.itemNumber}`
+      if (!seenKeys.has(keyItem)) {
+        seenKeys.add(keyItem)
+        boAmount += salesAmountBySOItem[keyItem] || 0
       }
     })
     return { ...r, boAmount }
@@ -247,6 +256,7 @@ function fmtDate(v) {
 function str(v)   { return v == null ? '' : String(v).trim() }
 function num(v)   { return typeof v === 'number' ? v : parseFloat(v) || 0 }
 function lineN(v) { if (!v) return ''; const s = str(v); const f = parseFloat(s); return isNaN(f) ? s : String(f) }
+function lineNFull(v) { if (!v) return ''; const s = str(v).trim(); return s === 'nan' ? '' : s }
 
 // ─── BO set ───────────────────────────────────────────────────────
 function buildBOSet(rows) {
@@ -268,6 +278,7 @@ function makeOrderRow(r) {
   return {
     salesOrder:         str(r['Sales order']),
     lineNumber:         lineN(r['Line number']),
+    lineNumberFull:     lineNFull(r['Line number']),
     itemNumber:         str(r['Item number']),
     customerName:       str(r['Customer name']),
     confirmedShipDate:  fmtDate(r['Confirmed ship date']),
