@@ -34,22 +34,36 @@ const COLUMN_INFO = [
 
 function InfoTh({ label, info }) {
   const [show, setShow] = useState(false)
+  const btnRef = useRef(null)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  function handleClick(e) {
+    e.stopPropagation()
+    if (!show && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPos({ top: rect.bottom + 6, left: Math.max(rect.left - 230, 8) })
+    }
+    setShow(s => !s)
+  }
+
   return (
     <th style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0', zIndex:10 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:3, position:'relative' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:3 }}>
         <span>{label}</span>
         <div style={{ position:'relative' }}>
           <button
-            onClick={e => { e.stopPropagation(); setShow(s => !s) }}
+            ref={btnRef}
+            onClick={handleClick}
             style={{ width:13, height:13, borderRadius:'50%', border:'1px solid #aaa', background:'transparent', color:'#aaa', fontSize:8, cursor:'pointer', fontWeight:700, padding:0, lineHeight:'11px', flexShrink:0 }}>
             i
           </button>
           {show && (
             <div
               onClick={e => e.stopPropagation()}
-              style={{ position:'fixed', background:'#1a1a1a', color:'#fff', fontSize:11, padding:'10px 12px', borderRadius:8, width:220, zIndex:9999, lineHeight:1.6, textAlign:'right', boxShadow:'0 4px 16px rgba(0,0,0,0.3)', direction:'rtl' }}>
+              style={{ position:'fixed', top: pos.top, left: pos.left, background:'#1a1a1a', color:'#fff', fontSize:12, padding:'12px 14px', borderRadius:8, width:260, zIndex:9999, lineHeight:1.7, textAlign:'right', boxShadow:'0 4px 20px rgba(0,0,0,0.35)', direction:'rtl', whiteSpace:'normal', wordBreak:'break-word' }}>
+              <div style={{ fontWeight:600, marginBottom:6, color:'#78b8f0' }}>{label}</div>
               {info}
-              <button onClick={() => setShow(false)} style={{ display:'block', marginTop:8, fontSize:10, color:'#aaa', background:'none', border:'none', cursor:'pointer', padding:0 }}>סגור ✕</button>
+              <button onClick={() => setShow(false)} style={{ display:'block', marginTop:10, fontSize:11, color:'#aaa', background:'none', border:'none', cursor:'pointer', padding:0 }}>סגור ✕</button>
             </div>
           )}
         </div>
