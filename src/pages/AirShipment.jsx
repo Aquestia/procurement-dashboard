@@ -105,6 +105,11 @@ export default function AirShipment({ data, notes, loading }) {
           </div>
         </div>
         <div style={{ marginRight: 'auto', display: 'flex', gap: 8 }}>
+          <button onClick={buildExcel} style={{
+            fontSize: 12, padding: '7px 16px', borderRadius: 7,
+            border: '0.5px solid #3B6D11', background: '#3B6D11', color: '#fff',
+            cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+          }}>⬇ ייצוא Excel</button>
           <button onClick={handleExportAndOutlook} style={{
             fontSize: 12, padding: '7px 16px', borderRadius: 7,
             border: '0.5px solid #185FA5', background: '#185FA5', color: '#fff',
