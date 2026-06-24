@@ -6,6 +6,7 @@ const STATUS_OPTIONS = [
   { value: '', label: '—', bg: 'transparent', color: '#888', border: '#ddd' },
   { value: 'בטיפול', label: 'בטיפול', bg: '#FFF3CD', color: '#856404', border: '#FFCA2C' },
   { value: 'טופל', label: 'טופל ✓', bg: '#D1E7DD', color: '#0A3622', border: '#75B798' },
+  { value: 'הטסה', label: 'הטסה ✈', bg: '#E6F1FB', color: '#185FA5', border: '#378ADD' },
 ]
 
 const COLUMN_INFO = [
@@ -100,6 +101,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
       const st = n?.treatment_status || ''
       if (filterTreatment === 'טופל' && st !== 'טופל') return false
       if (filterTreatment === 'בטיפול' && st !== 'בטיפול') return false
+      if (filterTreatment === 'הטסה' && st !== 'הטסה') return false
       if (filterTreatment === 'לא טופל' && st !== '') return false
     }
     if (search) {
@@ -196,7 +198,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         ))}
         <select value={filterTreatment} onChange={e => setFilterTreatment(e.target.value)}
           style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
-          {['הכל','טופל','בטיפול','לא טופל'].map(o => <option key={o}>{o}</option>)}
+          {['הכל','טופל','בטיפול','הטסה','לא טופל'].map(o => <option key={o}>{o}</option>)}
         </select>
         <select value={filterBuyer} onChange={e => setFilterBuyer(e.target.value)}
           style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
@@ -225,7 +227,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
 
               return (
               <React.Fragment key={i}>
-                <tr style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : row.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
+                <tr style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : treatment==='הטסה' ? '#E6F1FB33' : row.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
                   onClick={() => setExpandedItem(expandedItem===row.itemNumber ? null : row.itemNumber)}>
                   {/* Treatment status */}
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.preventDefault()}>
