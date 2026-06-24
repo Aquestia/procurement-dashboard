@@ -42,6 +42,7 @@ export default function TapiRequests() {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [nextId, setNextId] = useState('')
 
   useEffect(() => { loadRequests() }, [])
 
@@ -53,8 +54,18 @@ export default function TapiRequests() {
         .select('*')
         .order('created_at', { ascending: false })
       setRequests(data || [])
+      calcNextId(data || [])
     } catch (err) { console.error(err) }
     setLoading(false)
+  }
+
+  function calcNextId(list) {
+    const nums = list.map(r => {
+      const m = r.request_id?.match(/request_(\d+)/)
+      return m ? parseInt(m[1], 10) : 0
+    })
+    const next = Math.max(...nums, 0) + 1
+    setNextId(`request_${String(next).padStart(2, '0')}`)
   }
 
   async function updateStatus(id, status) {
@@ -65,9 +76,19 @@ export default function TapiRequests() {
   }
 
   async function handleSave(requester, text) {
-    const newId = genRequestId(requests)
-    const now = new Date().toISOString()
     try {
+      // Get max request_id from DB to avoid duplicates
+      const { data: all } = await supabase
+        .from('tapi_requests')
+        .select('request_id')
+      const nums = (all || []).map(r => {
+        const m = r.request_id?.match(/request_(\d+)/)
+        return m ? parseInt(m[1], 10) : 0
+      })
+      const next = Math.max(...nums, 0) + 1
+      const newId = `request_${String(next).padStart(2, '0')}`
+
+      const now = new Date().toISOString()
       const { data: inserted } = await supabase.from('tapi_requests').insert({
         request_id: newId,
         requester,
@@ -75,7 +96,11 @@ export default function TapiRequests() {
         status: '—',
         created_at: now,
       }).select().single()
-      if (inserted) setRequests(prev => [inserted, ...prev])
+      if (inserted) {
+        const updated = [inserted, ...requests]
+        setRequests(updated)
+        calcNextId(updated)
+      }
     } catch (err) { console.error(err) }
     setShowModal(false)
   }
@@ -165,7 +190,7 @@ export default function TapiRequests() {
         <RequestModal
           onSave={handleSave}
           onClose={() => setShowModal(false)}
-          nextId={genRequestId(requests)}
+          nextId={nextId}
         />
       )}
     </div>
