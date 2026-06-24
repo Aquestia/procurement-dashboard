@@ -4,6 +4,7 @@ const NAV_ITEMS = [
   { id: 'tapi', icon: '🔧', label: 'מבט תפ"י' },
   { id: 'backorders', icon: '⚠️', label: 'Back Orders' },
   { id: 'recommendations', icon: '💡', label: 'המלצות' },
+  { id: 'tapi_requests', icon: '📋', label: 'בקשות רכש תפ"י' },
 ]
 
 export default function Sidebar({ activePage, setActivePage, activeFile, data, adminUnlocked, onLock, onChangePinClick }) {
