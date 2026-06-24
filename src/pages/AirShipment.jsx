@@ -2,14 +2,6 @@ import { useMemo, useState } from 'react'
 import { Badge, fmtDate } from '../components/shared'
 import * as XLSX from 'xlsx'
 
-function exportToExcel(rows, filename) {
-  const ws = window.XLSX ? window.XLSX.utils.json_to_sheet(rows) : null
-  const XLSX2 = require('xlsx')
-  const ws2 = XLSX2.utils.json_to_sheet(rows)
-  const wb = XLSX2.utils.book_new()
-  XLSX2.utils.book_append_sheet(wb, ws2, 'הטסה')
-  XLSX2.writeFile(wb, filename)
-}
 
 export default function AirShipment({ data, notes, loading }) {
   const [search, setSearch] = useState('')
@@ -70,11 +62,10 @@ export default function AirShipment({ data, notes, loading }) {
         })
       }))
     })
-    const XLSX2 = require('xlsx')
-    const ws = XLSX2.utils.json_to_sheet(rows)
-    const wb = XLSX2.utils.book_new()
-    XLSX2.utils.book_append_sheet(wb, ws, 'פריטים להטסה')
-    XLSX2.writeFile(wb, 'פריטים_להטסה.xlsx')
+    const ws = XLSX.utils.json_to_sheet(rows)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'פריטים להטסה')
+    XLSX.writeFile(wb, 'פריטים_להטסה.xlsx')
 
     // Step 2 - open Outlook after short delay
     const today = new Date().toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric' })
