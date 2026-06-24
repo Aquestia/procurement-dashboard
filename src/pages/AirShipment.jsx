@@ -39,7 +39,8 @@ export default function AirShipment({ data, notes, loading }) {
     return list
   }, [airItems, search])
 
-  function handleExport() {
+  function handleExportAndMail() {
+    // Step 1 - download Excel
     const rows = []
     filtered.forEach(r => {
       const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
@@ -74,6 +75,15 @@ export default function AirShipment({ data, notes, loading }) {
     const wb = XLSX2.utils.book_new()
     XLSX2.utils.book_append_sheet(wb, ws, 'פריטים להטסה')
     XLSX2.writeFile(wb, 'פריטים_להטסה.xlsx')
+
+    // Step 2 - open Outlook after short delay
+    const today = new Date().toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric' })
+    const subject = encodeURIComponent(`פריטים להטסה — ${today}`)
+    const itemList = filtered.map(r => `• ${r.itemNumber} — ${r.productName || ''}`).join('%0A')
+    const body = encodeURIComponent(`שלום,\n\nמצורף קובץ Excel עם רשימת הפריטים המסומנים להטסה נכון לתאריך ${today}.\n\n`) + itemList + encodeURIComponent(`\n\nסה"כ ${filtered.length} מק"טים.\n\nבברכה`)
+    setTimeout(() => {
+      window.location.href = `mailto:?subject=${subject}&body=${body}`
+    }, 800)
   }
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>טוען...</div>
@@ -92,11 +102,11 @@ export default function AirShipment({ data, notes, loading }) {
               : `${airItems.length} מק"טים מסומנים להטסה`}
           </div>
         </div>
-        <button onClick={handleExport} style={{
+        <button onClick={handleExportAndMail} style={{
           marginRight: 'auto', fontSize: 12, padding: '7px 16px', borderRadius: 7,
           border: '0.5px solid #378ADD', background: '#378ADD', color: '#fff',
-          cursor: 'pointer', fontWeight: 600,
-        }}>⬇ ייצוא Excel</button>
+          cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+        }}>📧 ייצוא + שליחה ב-Outlook</button>
       </div>
 
       {/* Search */}
