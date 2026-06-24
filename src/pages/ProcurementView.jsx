@@ -8,6 +8,56 @@ const STATUS_OPTIONS = [
   { value: 'טופל', label: 'טופל ✓', bg: '#D1E7DD', color: '#0A3622', border: '#75B798' },
 ]
 
+const COLUMN_INFO = [
+  { label: 'סטטוס טיפול', info: 'סטטוס הטיפול הפנימי של הצוות — האם הפריט טופל, בטיפול, או עדיין ממתין. ניתן לעדכן ישירות מהרשימה.' },
+  { label: 'מק"ט',        info: 'מספר הפריט הייחודי במערכת (Item Number). משמש לזיהוי הפריט בכל המסכים.' },
+  { label: 'תיאור מוצר',  info: 'תיאור מלא של הפריט כפי שמופיע במערכת.' },
+  { label: 'סטטוס',       info: 'סטטוס רכש מחושב: BO = Back Order (איחור באספקה), בסכנה = אין הזמנת רכש פעילה, תקין = יש הזמנה עם תאריך קבלה.' },
+  { label: 'פק"ע / הזמנה',info: 'מספר פקודת העבודה (PRD) שהפריט שייך אליה. עבור חלקי חילוף ישירים — מוצג מספר הזמנת המכירה (SOIL).' },
+  { label: 'הז. מכירה',   info: 'מספר הזמנת המכירה (Sales Order) אליה קשור הפריט. בדרך כלל מתחיל ב-SOIL.' },
+  { label: 'שורת מכירה',  info: 'מספר השורה בהזמנת המכירה הספציפית לפריט זה.' },
+  { label: 'ת. אספקה מאושר', info: 'תאריך האספקה המאושר ללקוח כפי שמופיע בהזמנת המכירה (Confirmed Delivery Date).' },
+  { label: 'BO',           info: 'מספר הזמנות Back Order הקשורות לפריט — הזמנות שעבר תאריך האספקה שלהן ועדיין לא סופקו.' },
+  { label: 'הזמנות',      info: 'סך כל הזמנות המכירה הפתוחות המחכות לפריט זה.' },
+  { label: 'נדרש',         info: 'הכמות הכוללת הנדרשת לפריט מכל ההזמנות הפתוחות.' },
+  { label: 'נאסף',         info: 'הכמות שכבר נאספה / הוקצתה מהמלאי הקיים.' },
+  { label: 'בהזמנה',      info: 'הכמות שהוזמנה אצל הספק ועדיין לא התקבלה במחסן.' },
+  { label: 'זמין',         info: 'הכמות הזמינה נטו: מלאי קיים + בהזמנה − נאסף. כמות שניתן לייחס להזמנות.' },
+  { label: 'חוסר',         info: 'הכמות החסרה לסגירת כל ההזמנות: נדרש − זמין. מספר חיובי = חוסר אמיתי.' },
+  { label: 'הז. רכש',     info: 'מספר הזמנת הרכש (Purchase Order) שנפתחה לספק עבור פריט זה.' },
+  { label: 'שורת רכש',    info: 'מספר השורה בהזמנת הרכש.' },
+  { label: 'מסלול',        info: 'מסלול השינוע / Voyage המשויך להזמנת הרכש (רלוונטי לייבוא בים).' },
+  { label: 'ספק',          info: 'שם הספק ממנו הוזמן הפריט.' },
+  { label: 'צפי קבלה',    info: 'תאריך הקבלה המאושר מהספק (Confirmed Receipt Date). אם ריק — הספק לא אישר תאריך.' },
+  { label: 'הערות',        info: 'הערות פנימיות של רכש ותפ"י לפריט. לחץ על עיפרון לעריכה.' },
+]
+
+function InfoTh({ label, info }) {
+  const [show, setShow] = useState(false)
+  return (
+    <th style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0', zIndex:10 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:3, position:'relative' }}>
+        <span>{label}</span>
+        <div style={{ position:'relative' }}>
+          <button
+            onClick={e => { e.stopPropagation(); setShow(s => !s) }}
+            style={{ width:13, height:13, borderRadius:'50%', border:'1px solid #aaa', background:'transparent', color:'#aaa', fontSize:8, cursor:'pointer', fontWeight:700, padding:0, lineHeight:'11px', flexShrink:0 }}>
+            i
+          </button>
+          {show && (
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ position:'fixed', background:'#1a1a1a', color:'#fff', fontSize:11, padding:'10px 12px', borderRadius:8, width:220, zIndex:9999, lineHeight:1.6, textAlign:'right', boxShadow:'0 4px 16px rgba(0,0,0,0.3)', direction:'rtl' }}>
+              {info}
+              <button onClick={() => setShow(false)} style={{ display:'block', marginTop:8, fontSize:10, color:'#aaa', background:'none', border:'none', cursor:'pointer', padding:0 }}>סגור ✕</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </th>
+  )
+}
+
 export default function ProcurementView({ data, notes, saveNote, loading }) {
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('הכל')
@@ -146,8 +196,8 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
-              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','ת. אספקה מאושר','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה','הערות'].map(h => (
-                <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0' }}>{h}</th>
+              {COLUMN_INFO.map(({ label, info }) => (
+                <InfoTh key={label} label={label} info={info} />
               ))}
             </tr>
           </thead>
