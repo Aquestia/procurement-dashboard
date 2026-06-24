@@ -146,7 +146,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
-              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה','הערות'].map(h => (
+              {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','ת. אספקה מאושר','BO','הזמנות','נדרש','נאסף','בהזמנה','זמין','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה','הערות'].map(h => (
                 <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0' }}>{h}</th>
               ))}
             </tr>
@@ -176,7 +176,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555', whiteSpace:'nowrap' }}>{prdVal||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{row.orders?.[0]?.lineNumber||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.boOrdersCount>0?'#A32D2D':'#1a1a1a', fontWeight:row.boOrdersCount>0?600:400 }}>{row.boOrdersCount}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap', color: row.orders?.[0]?.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>{fmtDate(row.orders?.[0]?.confirmedShipDate)||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.affectedOrdersCount}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{row.totalQtyRequired}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalQtyPicked}</td>
