@@ -254,30 +254,26 @@ export default function Overview({ data, loading, stageSummary, financials, note
                   const n = notes?.[r.itemNumber] || {}
                   ordList.forEach((o,oi) => {
                     pos.forEach((po,pi) => {
-                      const isFirst = oi === 0 && pi === 0
-                      const totalRows = ordList.length * pos.length
                       rows.push(
                         <tr key={`${i}-${oi}-${pi}`} style={{ background: r.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8' }}>
-                          {/* הערות — רק בשורה ראשונה */}
-                          {isFirst && (
-                            <td rowSpan={totalRows} style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
-                              <button
-                                onClick={() => setEditingRow(r)}
-                                style={{
-                                  fontSize:10, padding:'3px 7px', borderRadius:5, cursor:'pointer',
-                                  border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '0.5px solid #ddd',
-                                  background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
-                                  color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
-                                  fontWeight: (n.note_procurement || n.note_tapi) ? 600 : 400,
-                                }}>
-                                ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
-                              </button>
-                              <div style={{ marginTop:3, display:'flex', gap:3 }}>
-                                {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                                {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
-                              </div>
-                            </td>
-                          )}
+                          {/* הערות — בכל שורה */}
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
+                            <button
+                              onClick={() => setEditingRow(r)}
+                              style={{
+                                fontSize:10, padding:'3px 7px', borderRadius:5, cursor:'pointer',
+                                border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '0.5px solid #ddd',
+                                background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
+                                color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
+                                fontWeight: (n.note_procurement || n.note_tapi) ? 600 : 400,
+                              }}>
+                              ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
+                            </button>
+                            <div style={{ marginTop:3, display:'flex', gap:3 }}>
+                              {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                              {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                            </div>
+                          </td>
                           <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', textAlign:'center' }}>
                             {r.isBO ? <span style={{ color:'#A32D2D', fontWeight:700, fontSize:10 }}>BO</span> : ''}
                           </td>
@@ -450,8 +446,7 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
                   const n = notes?.[r.itemNumber] || {}
                   return combos.map(({po, o}, j) => (
                     <tr key={`${i}-${j}`} style={{ background: i%2===0?'#fff':'#fafaf8' }}>
-                      {j===0 && (
-                        <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
                           <button
                             onClick={e => { e.stopPropagation(); onEditNote && onEditNote(r) }}
                             style={{
@@ -467,7 +462,6 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
                             {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 4px', borderRadius:3 }}>תפ"י</span>}
                           </div>
                         </td>
-                      )}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top', whiteSpace:'nowrap' }}>{r.itemNumber}</td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', verticalAlign:'top' }}>{r.productName||'—'}</td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'top' }}><Badge status={r.procurementStatus} /></td>}
