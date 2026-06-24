@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
 const REQUESTERS = [
+  'דליה כוהן',
   'נטע שוחט אילוז',
   'עופרית ברנע',
   'טלי קדוש',
