@@ -33,7 +33,7 @@ export default function TapiRequests() {
   const [showModal, setShowModal] = useState(false)
   const [nextId, setNextId]       = useState('')
 
-  // ── Filters ──────────────────────────────────────────────────────
+  const [sortAsc, setSortAsc] = useState(false)
   const [filterRequester, setFilterRequester] = useState('הכל')
   const [filterStatus,    setFilterStatus]    = useState('הכל')
   const [dateFrom,        setDateFrom]        = useState('')
@@ -98,21 +98,20 @@ export default function TapiRequests() {
       if (filterRequester !== 'הכל' && r.requester !== filterRequester) return false
       if (filterStatus !== 'הכל' && (r.status || '—') !== filterStatus) return false
       if (dateFrom) {
-        const d = new Date(r.created_at)
-        d.setHours(0,0,0,0)
-        const from = new Date(dateFrom)
-        if (d < from) return false
+        const d = new Date(r.created_at); d.setHours(0,0,0,0)
+        if (d < new Date(dateFrom)) return false
       }
       if (dateTo) {
-        const d = new Date(r.created_at)
-        d.setHours(23,59,59,999)
-        const to = new Date(dateTo)
-        to.setHours(23,59,59,999)
+        const d = new Date(r.created_at); d.setHours(23,59,59,999)
+        const to = new Date(dateTo); to.setHours(23,59,59,999)
         if (d > to) return false
       }
       return true
-    })
-  }, [requests, filterRequester, filterStatus, dateFrom, dateTo])
+    }).sort((a, b) => sortAsc
+      ? (a.request_num || 0) - (b.request_num || 0)
+      : (b.request_num || 0) - (a.request_num || 0)
+    )
+  }, [requests, filterRequester, filterStatus, dateFrom, dateTo, sortAsc])
 
   const hasFilters = filterRequester !== 'הכל' || filterStatus !== 'הכל' || dateFrom || dateTo
 
@@ -221,7 +220,16 @@ export default function TapiRequests() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ background: '#f4f4f0' }}>
-                {['מס׳ בקשה','תאריך פתיחה','מבקש','תוכן הבקשה','סטטוס'].map(h => (
+                <th style={{ padding: '10px 14px', fontWeight: 600, fontSize: 11, color: '#555', borderBottom: '0.5px solid #e0e0da', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                  <button onClick={() => setSortAsc(s => !s)} style={{
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 11, fontWeight: 600, color: '#378ADD', padding: 0,
+                  }}>
+                    מס׳ בקשה <span style={{ fontSize: 10 }}>{sortAsc ? '↑' : '↓'}</span>
+                  </button>
+                </th>
+                {['תאריך פתיחה','מבקש','תוכן הבקשה','סטטוס'].map(h => (
                   <th key={h} style={{
                     padding: '10px 14px', fontWeight: 600, fontSize: 11,
                     color: '#555', borderBottom: '0.5px solid #e0e0da',
