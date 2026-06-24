@@ -177,6 +177,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{row.orders?.[0]?.lineNumber||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap', color: row.orders?.[0]?.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>{fmtDate(row.orders?.[0]?.confirmedShipDate)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.boOrdersCount>0?'#A32D2D':'#1a1a1a', fontWeight:row.boOrdersCount>0?600:400 }}>{row.boOrdersCount}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.affectedOrdersCount}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{row.totalQtyRequired}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalQtyPicked}</td>
@@ -201,7 +202,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                 {expandedItem === row.itemNumber && (
                   <React.Fragment key={`exp-${i}`}>
                     <tr>
-                      <td colSpan={18} style={{ padding:0, borderBottom:'0.5px solid #e5e5e0' }}>
+                      <td colSpan={21} style={{ padding:0, borderBottom:'0.5px solid #e5e5e0' }}>
                         <div style={{ padding:'10px 14px', background:'#f8f8f6', direction:'rtl' }}>
                           <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>
                             הזמנות רכש פתוחות — {row.itemNumber} ({row.purchaseOrders?.length||0})
