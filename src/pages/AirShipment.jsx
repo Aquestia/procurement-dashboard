@@ -31,8 +31,7 @@ export default function AirShipment({ data, notes, loading }) {
     return list
   }, [airItems, search])
 
-  function handleExportAndMail() {
-    // Step 1 - download Excel
+  function buildExcel() {
     const rows = []
     filtered.forEach(r => {
       const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
@@ -66,15 +65,27 @@ export default function AirShipment({ data, notes, loading }) {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'פריטים להטסה')
     XLSX.writeFile(wb, 'פריטים_להטסה.xlsx')
+  }
 
-    // Step 2 - open Outlook after short delay
+  function buildMessage() {
     const today = new Date().toLocaleDateString('he-IL', { day:'2-digit', month:'2-digit', year:'numeric' })
+    const itemList = filtered.map(r => `• ${r.itemNumber} — ${r.productName || ''}`).join('\n')
+    return { today, itemList }
+  }
+
+  function handleExportAndOutlook() {
+    buildExcel()
+    const { today, itemList } = buildMessage()
     const subject = encodeURIComponent(`פריטים להטסה — ${today}`)
-    const itemList = filtered.map(r => `• ${r.itemNumber} — ${r.productName || ''}`).join('%0A')
-    const body = encodeURIComponent(`שלום,\n\nמצורף קובץ Excel עם רשימת הפריטים המסומנים להטסה נכון לתאריך ${today}.\n\n`) + itemList + encodeURIComponent(`\n\nסה"כ ${filtered.length} מק"טים.\n\nבברכה`)
-    setTimeout(() => {
-      window.location.href = `mailto:?subject=${subject}&body=${body}`
-    }, 800)
+    const body = encodeURIComponent(`שלום,\n\nמצורף קובץ Excel עם רשימת הפריטים המסומנים להטסה נכון לתאריך ${today}.\n\n${itemList}\n\nסה"כ ${filtered.length} מק"טים.\n\nבברכה`)
+    setTimeout(() => { window.location.href = `mailto:?subject=${subject}&body=${body}` }, 800)
+  }
+
+  function handleExportAndWhatsApp() {
+    buildExcel()
+    const { today, itemList } = buildMessage()
+    const text = encodeURIComponent(`✈ *פריטים להטסה — ${today}*\n\n${itemList}\n\nסה"כ ${filtered.length} מק"טים\n_(קובץ Excel מצורף בנפרד)_`)
+    setTimeout(() => { window.open(`https://web.whatsapp.com/send?text=${text}`, '_blank') }, 800)
   }
 
   if (loading) return <div style={{ padding: 40, textAlign: 'center', color: '#888' }}>טוען...</div>
@@ -93,11 +104,18 @@ export default function AirShipment({ data, notes, loading }) {
               : `${airItems.length} מק"טים מסומנים להטסה`}
           </div>
         </div>
-        <button onClick={handleExportAndMail} style={{
-          marginRight: 'auto', fontSize: 12, padding: '7px 16px', borderRadius: 7,
-          border: '0.5px solid #378ADD', background: '#378ADD', color: '#fff',
-          cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-        }}>📧 ייצוא + שליחה ב-Outlook</button>
+        <div style={{ marginRight: 'auto', display: 'flex', gap: 8 }}>
+          <button onClick={handleExportAndOutlook} style={{
+            fontSize: 12, padding: '7px 16px', borderRadius: 7,
+            border: '0.5px solid #185FA5', background: '#185FA5', color: '#fff',
+            cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+          }}>📧 ייצוא + Outlook</button>
+          <button onClick={handleExportAndWhatsApp} style={{
+            fontSize: 12, padding: '7px 16px', borderRadius: 7,
+            border: '0.5px solid #25D366', background: '#25D366', color: '#fff',
+            cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+          }}>💬 ייצוא + WhatsApp</button>
+        </div>
       </div>
 
       {/* Search */}
