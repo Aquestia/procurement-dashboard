@@ -55,10 +55,7 @@ export default function TapiRequests() {
   }
 
   function calcNextId(list) {
-    const nums = list.map(r => {
-      const m = r.request_id?.match(/request_(\d+)/)
-      return m ? parseInt(m[1], 10) : 0
-    })
+    const nums = list.map(r => r.request_num || 0)
     const next = Math.max(...nums, 0) + 1
     setNextId(`request_${String(next).padStart(2, '0')}`)
   }
@@ -72,16 +69,19 @@ export default function TapiRequests() {
 
   async function handleSave(requester, text) {
     try {
-      const { data: all } = await supabase.from('tapi_requests').select('request_id')
-      const nums = (all || []).map(r => {
-        const m = r.request_id?.match(/request_(\d+)/)
-        return m ? parseInt(m[1], 10) : 0
-      })
-      const next = Math.max(...nums, 0) + 1
-      const newId = `request_${String(next).padStart(2, '0')}`
+      // Get max request_num (integer) from DB — guaranteed unique
+      const { data: all } = await supabase.from('tapi_requests').select('request_num')
+      const nums = (all || []).map(r => r.request_num || 0)
+      const nextNum = Math.max(...nums, 0) + 1
+      const newId = `request_${String(nextNum).padStart(2, '0')}`
       const now = new Date().toISOString()
       const { data: inserted } = await supabase.from('tapi_requests').insert({
-        request_id: newId, requester, body: text, status: '—', created_at: now,
+        request_id: newId,
+        request_num: nextNum,
+        requester,
+        body: text,
+        status: '—',
+        created_at: now,
       }).select().single()
       if (inserted) {
         const updated = [inserted, ...requests]
