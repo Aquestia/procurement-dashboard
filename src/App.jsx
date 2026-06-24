@@ -100,7 +100,7 @@ export default function App() {
   }
 
   const pages = {
-    overview:        <Overview data={data} loading={loading} stageSummary={stageSummary} financials={financials} />,
+    overview:        <Overview data={data} loading={loading} stageSummary={stageSummary} financials={financials} notes={notes} saveNote={saveNote} />,
     procurement:     <ProcurementView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     tapi:            <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,

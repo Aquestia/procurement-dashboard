@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from 'recharts'
+import { useMemo, useState, useRef } from 'react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList } from 'recharts'
 import { Badge, fmtDate, LoadingState, EmptyState } from '../components/shared'
 import * as XLSX from 'xlsx'
 
@@ -12,10 +12,10 @@ function exportToExcel(data, filename, sheetName) {
   XLSX.writeFile(wb, filename)
 }
 
-export default function Overview({ data, loading, stageSummary, financials }) {
-  // ── ALL HOOKS FIRST — no early returns before this line ──
+export default function Overview({ data, loading, stageSummary, financials, notes, saveNote }) {
   const [expandedBottleneck, setExpandedBottleneck] = useState(null)
   const [selectedMonth, setSelectedMonth] = useState(null)
+  const [editingRow, setEditingRow] = useState(null)
 
   const now = new Date()
   const dateStr = now.toLocaleDateString('he-IL', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
@@ -29,7 +29,6 @@ export default function Overview({ data, loading, stageSummary, financials }) {
     const noDate = data.filter(r => r.hasPO && r.hasNoDate)
     const late   = data.filter(r => r.isLateReceipt)
 
-    // ספירת מק"טים ייחודיים לפי חודש (לא שורות הזמנה)
     const byMonth = {}
     data.forEach(r => {
       const seenMonths = new Set()
@@ -39,7 +38,7 @@ export default function Overview({ data, loading, stageSummary, financials }) {
           const match = s.match(/^(\d{4})-(\d{2})/)
           if (match) {
             const key = `${match[1]}-${match[2]}`
-            if (seenMonths.has(key)) return // מק"ט כבר נספר בחודש זה
+            if (seenMonths.has(key)) return
             seenMonths.add(key)
             const d = new Date(`${match[1]}-${match[2]}-01`)
             const label = d.toLocaleDateString('he-IL', { month:'short', year:'2-digit' })
@@ -89,7 +88,6 @@ export default function Overview({ data, loading, stageSummary, financials }) {
       { name:'מאחר',         value: late.length,   color:'#E24B4A', rows: late },
     ]
 
-    // סכום BO — לפי הזמנה+שורה ייחודיים בלבד (למנוע כפילויות)
     const seenOrders = new Set()
     let totalUSD = 0
     bo.forEach(r => {
@@ -106,11 +104,9 @@ export default function Overview({ data, loading, stageSummary, financials }) {
 
   const selectedMonthData = useMemo(() => {
     if (!selectedMonth || !data) return null
-    // מק"טים של החודש הנבחר
     const items = data.filter(r =>
       r.orders?.some(o => o.confirmedShipDate?.startsWith(selectedMonth.key))
     )
-    // BO לפי לקוח TOP 8
     const boItems = items.filter(r => r.isBO)
     const byCustomer = {}
     boItems.forEach(r => {
@@ -150,7 +146,6 @@ export default function Overview({ data, loading, stageSummary, financials }) {
     return Object.entries(c).filter(([,v])=>v>0).map(([name,value])=>({name,value}))
   }, [data, stageSummary])
 
-  // ── EARLY RETURNS after all hooks ──
   if (loading) return <LoadingState />
   if (!data || data.length === 0 || !stats) return <EmptyState />
 
@@ -178,7 +173,9 @@ export default function Overview({ data, loading, stageSummary, financials }) {
 
       {/* KPI */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:10, marginBottom:16 }}>
-        {kpiItems.map((k,i) => <KpiCard key={i} {...k} />)}
+        {kpiItems.map((k,i) => (
+          <KpiCard key={i} {...k} notes={notes} saveNote={saveNote} onEditNote={setEditingRow} />
+        ))}
       </div>
 
       {/* Monthly chart */}
@@ -239,11 +236,11 @@ export default function Overview({ data, loading, stageSummary, financials }) {
 
           {/* טבלת כל המק"טים */}
           <div style={{ fontSize:12, fontWeight:600, color:'#555', marginBottom:6 }}>כל המק"טים בחודש זה</div>
-          <div style={{ overflowX:'auto', maxHeight:360, overflowY:'auto', border:'0.5px solid #e5e5e0', borderRadius:8 }}>
+          <div style={{ overflowX:'auto', maxHeight:400, overflowY:'auto', border:'0.5px solid #e5e5e0', borderRadius:8 }}>
             <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:11 }}>
               <thead>
                 <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:5 }}>
-                  {['BO','מק"ט','תיאור מוצר','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה'].map(h => (
+                  {['הערות','BO','מק"ט','תיאור מוצר','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה'].map(h => (
                     <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                   ))}
                 </tr>
@@ -254,10 +251,33 @@ export default function Overview({ data, loading, stageSummary, financials }) {
                   const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
                   const rows = []
                   const ordList = ords?.length > 0 ? ords : [{}]
+                  const n = notes?.[r.itemNumber] || {}
                   ordList.forEach((o,oi) => {
                     pos.forEach((po,pi) => {
+                      const isFirst = oi === 0 && pi === 0
+                      const totalRows = ordList.length * pos.length
                       rows.push(
                         <tr key={`${i}-${oi}-${pi}`} style={{ background: r.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8' }}>
+                          {/* הערות — רק בשורה ראשונה */}
+                          {isFirst && (
+                            <td rowSpan={totalRows} style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
+                              <button
+                                onClick={() => setEditingRow(r)}
+                                style={{
+                                  fontSize:10, padding:'3px 7px', borderRadius:5, cursor:'pointer',
+                                  border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '0.5px solid #ddd',
+                                  background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
+                                  color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
+                                  fontWeight: (n.note_procurement || n.note_tapi) ? 600 : 400,
+                                }}>
+                                ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
+                              </button>
+                              <div style={{ marginTop:3, display:'flex', gap:3 }}>
+                                {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                                {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                              </div>
+                            </td>
+                          )}
                           <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', textAlign:'center' }}>
                             {r.isBO ? <span style={{ color:'#A32D2D', fontWeight:700, fontSize:10 }}>BO</span> : ''}
                           </td>
@@ -310,8 +330,6 @@ export default function Overview({ data, loading, stageSummary, financials }) {
           </div>
         </ChartCard>
 
-
-
         {/* PO Status */}
         <ChartCard title='סטטוס רכש'>
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginTop:4 }}>
@@ -338,13 +356,21 @@ export default function Overview({ data, loading, stageSummary, financials }) {
         </ChartCard>
       </div>
 
-
+      {/* Notes Modal */}
+      {editingRow && (
+        <NotesModal
+          row={editingRow}
+          notes={notes?.[editingRow.itemNumber] || {}}
+          onSave={(field, value) => saveNote(editingRow.itemNumber, field, value)}
+          onClose={() => setEditingRow(null)}
+        />
+      )}
     </div>
   )
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────
-function KpiCard({ label, value, sub, color, rows, info }) {
+function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEditNote }) {
   const [open, setOpen] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
 
@@ -374,7 +400,8 @@ function KpiCard({ label, value, sub, color, rows, info }) {
           'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
           'ספק': po.vendorName||'',
           'קב. רכש': po.buyerGroup||'',
-          'יתרה': po.deliverRemainder||'',
+          'הערת רכש': notes?.[r.itemNumber]?.note_procurement || '',
+          'הערת תפ"י': notes?.[r.itemNumber]?.note_tapi || '',
         })
       }))
     })
@@ -408,9 +435,9 @@ function KpiCard({ label, value, sub, color, rows, info }) {
             <button onClick={exportRows} style={{ fontSize:10, padding:'3px 8px', border:'0.5px solid #378ADD', borderRadius:5, background:'#378ADD', color:'#fff', cursor:'pointer' }}>ייצוא Excel</button>
           </div>
           <div style={{ overflowX:'auto', maxHeight:300, overflowY:'auto' }}>
-            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:900 }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:1000 }}>
               <thead>
-                <tr>{['מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע / הזמנה','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
+                <tr>{['הערות','מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע / הזמנה','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
                   <th key={h} style={{ background:'#f0f0ec', padding:'4px 6px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
@@ -420,8 +447,27 @@ function KpiCard({ label, value, sub, color, rows, info }) {
                   const ords = r.orders?.length > 0 ? r.orders : [{}]
                   const combos = []
                   pos.forEach(po => ords.forEach(o => combos.push({po, o})))
+                  const n = notes?.[r.itemNumber] || {}
                   return combos.map(({po, o}, j) => (
                     <tr key={`${i}-${j}`} style={{ background: i%2===0?'#fff':'#fafaf8' }}>
+                      {j===0 && (
+                        <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
+                          <button
+                            onClick={e => { e.stopPropagation(); onEditNote && onEditNote(r) }}
+                            style={{
+                              fontSize:10, padding:'2px 6px', borderRadius:4, cursor:'pointer',
+                              border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '0.5px solid #ddd',
+                              background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
+                              color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
+                            }}>
+                            ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
+                          </button>
+                          <div style={{ marginTop:2, display:'flex', gap:2 }}>
+                            {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 4px', borderRadius:3 }}>רכש</span>}
+                            {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 4px', borderRadius:3 }}>תפ"י</span>}
+                          </div>
+                        </td>
+                      )}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top', whiteSpace:'nowrap' }}>{r.itemNumber}</td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', verticalAlign:'top' }}>{r.productName||'—'}</td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'top' }}><Badge status={r.procurementStatus} /></td>}
@@ -547,6 +593,124 @@ function ChartCard({ title, children, onExport, info }) {
   )
 }
 
+// ── Notes Modal ───────────────────────────────────────────────────
+function NotesModal({ row, notes, onSave, onClose }) {
+  const [procNote, setProcNote] = useState(notes.note_procurement || '')
+  const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave('both', { note_procurement: procNote, note_tapi: tapiNote })
+    setSaving(false)
+    onClose()
+  }
+
+  async function handleClear() {
+    if (!confirm('למחוק את כל ההערות?')) return
+    setProcNote('')
+    setTapiNote('')
+    await onSave('both', { note_procurement: '', note_tapi: '' })
+    onClose()
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}
+      onClick={onClose}>
+      <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
+        onClick={e => e.stopPropagation()}>
+
+        <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
+            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{row.productName}</div>
+          </div>
+          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'#888', lineHeight:1 }}>✕</button>
+        </div>
+
+        <NoteField label='הערת רכש' value={procNote} onChange={setProcNote} color='#185FA5' />
+        <div style={{ height:12 }} />
+        <NoteField label='הערת תפ"י' value={tapiNote} onChange={setTapiNote} color='#3B6D11' />
+
+        <div style={{ display:'flex', gap:8, marginTop:20, justifyContent:'flex-start' }}>
+          <button onClick={handleSave} disabled={saving} style={{
+            fontSize:13, padding:'8px 20px', borderRadius:7, border:'none',
+            background:'#378ADD', color:'#fff', cursor:'pointer', fontWeight:600
+          }}>{saving ? 'שומר...' : '💾 שמור'}</button>
+          <button onClick={handleClear} style={{
+            fontSize:13, padding:'8px 16px', borderRadius:7,
+            border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer'
+          }}>🗑 מחק הערות</button>
+          <button onClick={onClose} style={{
+            fontSize:13, padding:'8px 16px', borderRadius:7,
+            border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer'
+          }}>ביטול</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Note Field ────────────────────────────────────────────────────
+function NoteField({ label, value, onChange, color }) {
+  const ref = useRef(null)
+
+  function insertFormat(prefix, suffix) {
+    const el = ref.current
+    if (!el) return
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const selected = value.slice(start, end)
+    const newVal = value.slice(0, start) + prefix + selected + suffix + value.slice(end)
+    onChange(newVal)
+    setTimeout(() => {
+      el.focus()
+      el.setSelectionRange(start + prefix.length, end + prefix.length)
+    }, 0)
+  }
+
+  return (
+    <div>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+        <span style={{ fontSize:12, fontWeight:600, color }}>{label}</span>
+        <div style={{ display:'flex', gap:4, marginRight:'auto' }}>
+          {[
+            { label:'B', title:'מודגש', prefix:'**', suffix:'**', style:{ fontWeight:700 } },
+            { label:'I', title:'נטוי', prefix:'_', suffix:'_', style:{ fontStyle:'italic' } },
+            { label:'U', title:'קו תחתי', prefix:'__', suffix:'__', style:{ textDecoration:'underline' } },
+          ].map(btn => (
+            <button key={btn.label} title={btn.title} onClick={() => insertFormat(btn.prefix, btn.suffix)}
+              style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer', ...btn.style }}>
+              {btn.label}
+            </button>
+          ))}
+          <button title='רשימה' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n• ' : '• ')); setTimeout(()=>ref.current?.focus(),0) }}
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
+            •
+          </button>
+          <button title='מספור' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n1. ' : '1. ')); setTimeout(()=>ref.current?.focus(),0) }}
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
+            1.
+          </button>
+        </div>
+      </div>
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={`כתוב ${label} כאן...`}
+        style={{
+          width:'100%', height:120, fontSize:13, padding:'10px 12px',
+          border:`1px solid ${color}40`, borderRadius:8, resize:'vertical',
+          background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6,
+          fontFamily:'inherit', direction:'rtl', textAlign:'right',
+          outline:'none', boxSizing:'border-box',
+        }}
+      />
+    </div>
+  )
+}
+
 // ── Exports ───────────────────────────────────────────────────────
 function exportPOStatus(poStatus) {
   const rows = []
@@ -572,63 +736,4 @@ function exportPOStatus(poStatus) {
     })
   })
   exportToExcel(rows, 'סטטוס_רכש_מלא.xlsx', 'סטטוס רכש')
-}
-
-function exportBOByCustomer(boData) {
-  const rows = []
-  boData.forEach(r => {
-    const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
-    const ords = r.orders?.length > 0 ? r.orders : [{}]
-    ords.forEach(o => {
-      const customerName = o.customerName || ''
-      pos.forEach(po => {
-        rows.push({
-          'לקוח': customerName,
-          'מק"ט': r.itemNumber,
-          'תיאור פריט': r.productName||'',
-          'סטטוס': r.procurementStatus,
-          'פק"ע / הזמנה': r.prd||'',
-          'הז. מכירה': o.salesOrder || (r.prd?.startsWith?.('SOIL') ? r.prd : '')||'',
-          'שורת מכירה': o.lineNumber||'',
-          'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
-          'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
-          'כמות נדרשת': r.totalQtyRequired,
-          'חוסר נטו': r.shortage,
-          'הז. רכש': po.purchaseOrder||'',
-          'שורת רכש': po.lineNumber||'',
-          'ספק': po.vendorName||'',
-          'כמות הוזמנה': po.quantity||'',
-          'יתרה': po.deliverRemainder||'',
-          'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
-          'ת. קבלה מבוקש': fmtDate(po.requestedReceiptDate),
-          'קב. רכש': po.buyerGroup||'',
-        })
-      })
-    })
-  })
-  // Sort by customer
-  rows.sort((a,b) => a['לקוח'].localeCompare(b['לקוח'], 'he'))
-  exportToExcel(rows, 'BO_לפי_לקוח.xlsx', 'BO לפי לקוח')
-}
-
-function exportStageData(stageData, data) {
-  const rows = []
-  data?.forEach(r => {
-    const s = r.stage || ''
-    let cat = s.includes('DR5') ? 'DR5 — צבע' : s.includes('DR4') ? 'DR4 — עיבוד שבבי' : s==='PRD' ? 'PRD — הרכבה ישירה' : 'רכש גלם ישיר'
-    const orders = r.orders?.length > 0 ? r.orders : [{}]
-    const pos = r.purchaseOrders?.length > 0 ? r.purchaseOrders : [{}]
-    orders.forEach(o => pos.forEach(po => {
-      rows.push({
-        'שלב': cat, 'פק"ע': r.prd||'', 'מק"ט': r.itemNumber, 'תיאור': r.productName,
-        'מספר הזמנה': o.salesOrder||'', 'שורה': o.lineNumber||'',
-        'לקוח': o.customerName||'', 'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
-        'נדרש': r.totalQtyRequired, 'חוסר נטו': r.shortage,
-        'הז. רכש': po.purchaseOrder||'', 'ספק': po.vendorName||'',
-        'קב. רכש': po.buyerGroup||'', 'יתרה': po.deliverRemainder||'',
-        'ת. קבלה מאושר': fmtDate(po.confirmedReceiptDate),
-      })
-    }))
-  })
-  exportToExcel(rows, 'שלבי_ייצור_מלא.xlsx', 'שלבי ייצור')
 }
