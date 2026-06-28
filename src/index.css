@@ -1,0 +1,96 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-page:      #F4F4F0;
+  --bg-card:      #FFFFFF;
+  --bg-sidebar:   #FFFFFF;
+  --bg-row:       #FAFAF8;
+  --bg-neutral:   #F0F0EA;
+  --bg-row-alt:   #F7FBFF;
+  --border-card:  #E5E5E0;
+  --border-tbl:   #E0E0DA;
+  --border-light: #DDDDDD;
+  --border-blue:  #B5D4F4;
+  --text-main:    #1A1A1A;
+  --text-sub:     #555555;
+  --text-muted:   #888888;
+  --text-hint:    #AAAAAA;
+  --blue:         #378ADD;
+  --blue-dark:    #185FA5;
+  --blue-bg:      #E6F1FB;
+  --blue-mid:     #78B8F0;
+  --red-dark:     #A32D2D;
+  --red-mid:      #E24B4A;
+  --red-bg:       #FCEBEB;
+  --red-border:   #F09595;
+  --green-dark:   #3B6D11;
+  --green-xdark:  #0A3622;
+  --green-mid:    #639922;
+  --green-bg:     #EAF3DE;
+  --green-light:  #D1E7DD;
+  --green-bdr:    #75B798;
+  --amber-dark:   #854F0B;
+  --amber-txt:    #856404;
+  --amber-mid:    #EF9F27;
+  --amber-bg:     #FAEEDA;
+  --yellow-bg:    #FFF3CD;
+  --yellow-bdr:   #FFCA2C;
+  --purple:       #7F77DD;
+  --purple-bg:    #EEEDFE;
+  --purple-dark:  #3C3489;
+  --navy:         #1A3A5C;
+}
+
+.dark {
+  --bg-page:      #12151A;
+  --bg-card:      #1C2028;
+  --bg-sidebar:   #161920;
+  --bg-row:       #20242D;
+  --bg-neutral:   #1A1E26;
+  --bg-row-alt:   #0D1F35;
+  --border-card:  #2A2F3A;
+  --border-tbl:   #252A35;
+  --border-light: #2A2F3A;
+  --border-blue:  #1A3A5C;
+  --text-main:    #F0F0EA;
+  --text-sub:     #AAAAAA;
+  --text-muted:   #666666;
+  --text-hint:    #444444;
+  --blue:         #5B9FE8;
+  --blue-dark:    #378ADD;
+  --blue-bg:      #0D1F35;
+  --blue-mid:     #378ADD;
+  --red-dark:     #F09595;
+  --red-mid:      #E24B4A;
+  --red-bg:       #2D1515;
+  --red-border:   #5C2020;
+  --green-dark:   #75B798;
+  --green-xdark:  #D1E7DD;
+  --green-mid:    #639922;
+  --green-bg:     #0D1F0A;
+  --green-light:  #0D1F0A;
+  --green-bdr:    #2A5C2A;
+  --amber-dark:   #EF9F27;
+  --amber-txt:    #EF9F27;
+  --amber-mid:    #EF9F27;
+  --amber-bg:     #1F1500;
+  --yellow-bg:    #1A1200;
+  --yellow-bdr:   #6B5200;
+  --purple:       #A9A4E8;
+  --purple-bg:    #1A1840;
+  --purple-dark:  #A9A4E8;
+  --navy:         #5B9FE8;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--text-main);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  direction: rtl;
+  transition: background 0.3s, color 0.3s;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-card) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-card); border-radius: 9999px; }

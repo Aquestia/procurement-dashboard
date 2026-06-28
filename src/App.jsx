@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './lib/supabase'
 import Sidebar from './components/Sidebar'
 import Overview from './pages/Overview'
@@ -13,15 +13,24 @@ import AirShipment from './pages/AirShipment'
 import AdminPinGate, { ChangePinPanel } from './components/AdminPinGate'
 
 export default function App() {
-  const [activePage, setActivePage] = useState(() => localStorage.getItem('activePage') || 'overview')
-  const [data, setData] = useState(null)
-  const [activeFile, setActiveFile] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [notes, setNotes] = useState({})
+  const [activePage, setActivePage]     = useState(() => localStorage.getItem('activePage') || 'overview')
+  const [data, setData]                 = useState(null)
+  const [activeFile, setActiveFile]     = useState(null)
+  const [loading, setLoading]           = useState(true)
+  const [notes, setNotes]               = useState({})
   const [stageSummary, setStageSummary] = useState(null)
-  const [financials, setFinancials] = useState(null)
+  const [financials, setFinancials]     = useState(null)
   const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === '1')
   const [showChangePin, setShowChangePin] = useState(false)
+  const [darkMode, setDarkMode]         = useState(() => localStorage.getItem('aq-theme') === 'dark')
+
+  // Apply dark mode class to <html>
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('aq-theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
+
+  const toggleDarkMode = useCallback(() => setDarkMode(d => !d), [])
 
   function handleSetActivePage(page) {
     localStorage.setItem('activePage', page)
@@ -67,9 +76,7 @@ export default function App() {
 
   async function saveNote(itemNumber, field, value) {
     if (!itemNumber) return
-
     const existing = notes[itemNumber] || {}
-    // Build fields to save
     const fields = field === 'both' ? value : { [field]: value }
     const toSave = {
       note_procurement: existing.note_procurement || '',
@@ -77,28 +84,18 @@ export default function App() {
       treatment_status: existing.treatment_status || '',
       ...fields,
     }
-
-    // Update local state immediately
     const localUpdated = { ...existing, ...toSave, item_number: itemNumber, sales_order: '', line_number: '' }
     setNotes(prev => ({ ...prev, [itemNumber]: localUpdated }))
-
     try {
       if (existing.id) {
-        // Update existing record
         await supabase.from('procurement_notes').update(toSave).eq('id', existing.id)
       } else {
-        // Insert new record
         const { data: inserted } = await supabase.from('procurement_notes').insert({
-          item_number: itemNumber,
-          sales_order: '',
-          line_number: '',
-          ...toSave,
+          item_number: itemNumber, sales_order: '', line_number: '', ...toSave,
         }).select().single()
         if (inserted) setNotes(prev => ({ ...prev, [itemNumber]: inserted }))
       }
-    } catch (err) {
-      console.error('saveNote error:', err)
-    }
+    } catch (err) { console.error('saveNote error:', err) }
   }
 
   const pages = {
@@ -118,9 +115,30 @@ export default function App() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', direction:'rtl', fontFamily:'Segoe UI, Arial, sans-serif', background:'#f8f8f6' }}>
-      <Sidebar activePage={activePage} setActivePage={handleSetActivePage} activeFile={activeFile} data={data} adminUnlocked={adminUnlocked} onLock={() => { setAdminUnlocked(false); sessionStorage.removeItem('admin_unlocked') }} onChangePinClick={() => setShowChangePin(s => !s)} />
-      <main style={{ flex:1, overflow:'auto' }}>{showChangePin && adminUnlocked && (<div style={{ padding:'16px 24px 0' }}><ChangePinPanel onClose={() => setShowChangePin(false)} /></div>)}{pages[activePage]}</main>
+    <div style={{
+      display: 'flex', height: '100vh', direction: 'rtl',
+      fontFamily: 'Segoe UI, Arial, sans-serif',
+      background: 'var(--bg-page)', transition: 'background 0.3s',
+    }}>
+      <Sidebar
+        activePage={activePage}
+        setActivePage={handleSetActivePage}
+        activeFile={activeFile}
+        data={data}
+        adminUnlocked={adminUnlocked}
+        onLock={() => { setAdminUnlocked(false); sessionStorage.removeItem('admin_unlocked') }}
+        onChangePinClick={() => setShowChangePin(s => !s)}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+      />
+      <main style={{ flex: 1, overflow: 'auto', background: 'var(--bg-page)', transition: 'background 0.3s' }}>
+        {showChangePin && adminUnlocked && (
+          <div style={{ padding: '16px 24px 0' }}>
+            <ChangePinPanel onClose={() => setShowChangePin(false)} />
+          </div>
+        )}
+        {pages[activePage]}
+      </main>
     </div>
   )
 }
