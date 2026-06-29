@@ -20,6 +20,7 @@ const COLS = [
   { label: 'כמות הוזמנה',    w: 80  },
   { label: 'יתרה',           w: 60  },
   { label: 'ת. קבלה מאושר',  w: 110 },
+  { label: 'ערך BO ($)',        w: 100 },
 ]
 
 export default function BackOrders({ data, notes, saveNote, loading }) {
@@ -263,6 +264,11 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                     {/* ת. קבלה מאושר */}
                     <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: !row.confirmedReceiptDate ? '#A32D2D' : '#1a1a1a' }}>
                       {fmtDate(row.confirmedReceiptDate)||'⚠️ חסר'}
+                    </td>
+
+                    {/* ערך BO */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, fontWeight:600, color:'#A32D2D' }}>
+                      {row.totalRemainingAmount ? '$' + Math.round(row.totalRemainingAmount).toLocaleString() : '—'}
                     </td>
                   </tr>
 
