@@ -4,17 +4,17 @@ import * as XLSX from 'xlsx'
 // Badge
 export function Badge({ status }) {
   const map = {
-    'BO':       { bg: 'var(--red-bg)',    color: 'var(--red-dark)' },
-    'בסכנה':    { bg: 'var(--amber-bg)',  color: 'var(--amber-dark)' },
-    'תקין':     { bg: 'var(--green-bg)', color: 'var(--green-dark)' },
-    'DR4':      { bg: 'var(--purple-bg)', color: 'var(--purple-dark)' },
-    'DR5':      { bg: 'var(--purple-bg)', color: 'var(--purple-dark)' },
-    'DR4→DR5':  { bg: 'var(--purple-bg)', color: 'var(--purple-dark)' },
-    'DR5→DR4':  { bg: 'var(--purple-bg)', color: 'var(--purple-dark)' },
-    'PRD':      { bg: 'var(--blue-bg)',   color: 'var(--blue-dark)' },
-    'לא ידוע':  { bg: 'var(--bg-neutral)', color: 'var(--text-muted)' },
+    'BO': { bg: '#FCEBEB', color: '#A32D2D' },
+    'בסכנה': { bg: '#FAEEDA', color: '#854F0B' },
+    'תקין': { bg: '#EAF3DE', color: '#3B6D11' },
+    'DR4': { bg: '#EEEDFE', color: '#3C3489' },
+    'DR5': { bg: '#EEEDFE', color: '#3C3489' },
+    'DR4→DR5': { bg: '#EEEDFE', color: '#3C3489' },
+    'DR5→DR4': { bg: '#EEEDFE', color: '#3C3489' },
+    'PRD': { bg: '#E6F1FB', color: '#185FA5' },
+    'לא ידוע': { bg: '#F1EFE8', color: '#5F5E5A' },
   }
-  const s = map[status] || { bg: 'var(--bg-neutral)', color: 'var(--text-muted)' }
+  const s = map[status] || { bg: '#F1EFE8', color: '#5F5E5A' }
   return (
     <span style={{
       display: 'inline-block', fontSize: 10, padding: '2px 7px',
@@ -24,23 +24,21 @@ export function Badge({ status }) {
   )
 }
 
-// KPI Card
+// KPI Card with expandable list
 export function KpiCard({ label, value, sub, color, items, columns }) {
   const [open, setOpen] = useState(false)
   const colorMap = {
-    red: 'var(--red-dark)', amber: 'var(--amber-dark)',
-    blue: 'var(--blue-dark)', default: 'var(--text-main)'
+    red: '#A32D2D', amber: '#854F0B', blue: '#185FA5', default: '#1a1a1a'
   }
+
   return (
-    <div style={{
-      background: 'var(--bg-neutral)', borderRadius: 8, padding: '10px 12px',
-      cursor: items ? 'pointer' : 'default', border: '1px solid var(--border-card)',
-      transition: 'background 0.3s',
-    }} onClick={() => items && setOpen(o => !o)}>
-      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: colorMap[color] || colorMap.default, lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: 'var(--text-hint)', marginTop: 3 }}>{sub}</div>}
-      {items && <div style={{ fontSize: 10, color: 'var(--blue)', marginTop: 4 }}>{open ? '▲ סגור' : '▼ הצג רשימה'}</div>}
+    <div style={{ background: '#f4f4f0', borderRadius: 8, padding: '10px 12px', cursor: items ? 'pointer' : 'default' }}
+      onClick={() => items && setOpen(o => !o)}>
+      <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 600, color: colorMap[color] || colorMap.default, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ fontSize: 10, color: '#999', marginTop: 3 }}>{sub}</div>}
+      {items && <div style={{ fontSize: 10, color: '#378ADD', marginTop: 4 }}>{open ? '▲ סגור' : '▼ הצג רשימה'}</div>}
+
       {open && items && (
         <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
           <ExpandedTable items={items} columns={columns} label={label} />
@@ -61,12 +59,13 @@ function ExpandedTable({ items, columns, label }) {
     XLSX.utils.book_append_sheet(wb, ws, 'נתונים')
     XLSX.writeFile(wb, `${label}.xlsx`)
   }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
         <button onClick={exportToExcel} style={{
-          fontSize: 11, padding: '4px 10px', border: '1px solid var(--blue)',
-          borderRadius: 6, background: 'var(--blue)', color: '#fff', cursor: 'pointer',
+          fontSize: 11, padding: '4px 10px', border: '0.5px solid #378ADD',
+          borderRadius: 6, background: '#378ADD', color: '#fff', cursor: 'pointer'
         }}>ייצוא Excel</button>
       </div>
       <div style={{ overflowX: 'auto', maxHeight: 300, overflowY: 'auto' }}>
@@ -74,22 +73,17 @@ function ExpandedTable({ items, columns, label }) {
           <thead>
             <tr>
               {columns.map(c => (
-                <th key={c.key} style={{
-                  background: 'var(--bg-neutral)', padding: '5px 7px', fontWeight: 600,
-                  fontSize: 10, color: 'var(--text-sub)', borderBottom: '1px solid var(--border-tbl)',
-                  whiteSpace: 'nowrap', textAlign: 'right',
-                }}>{c.label}</th>
+                <th key={c.key} style={{ background: '#f0f0ec', padding: '5px 7px', fontWeight: 600, fontSize: 10, color: '#555', borderBottom: '0.5px solid #e0e0da', whiteSpace: 'nowrap', textAlign: 'right' }}>
+                  {c.label}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
             {items.slice(0, 200).map((row, i) => (
-              <tr key={i} style={{ background: row.isBO ? 'var(--red-bg)' : i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-row)' }}>
+              <tr key={i} style={{ background: row.isBO ? '#FCEBEB18' : i % 2 === 0 ? '#fff' : '#fafaf8' }}>
                 {columns.map(c => (
-                  <td key={c.key} style={{
-                    padding: '4px 7px', borderBottom: '1px solid var(--border-tbl)',
-                    color: 'var(--text-main)', whiteSpace: 'nowrap',
-                  }}>
+                  <td key={c.key} style={{ padding: '4px 7px', borderBottom: '0.5px solid #f0f0ea', color: '#1a1a1a', whiteSpace: 'nowrap' }}>
                     {c.render ? c.render(row[c.key], row) : (row[c.key] ?? '—')}
                   </td>
                 ))}
@@ -102,27 +96,32 @@ function ExpandedTable({ items, columns, label }) {
   )
 }
 
-// Note cell
+// Note cell with auto-save
 export function NoteCell({ value, onChange, placeholder }) {
   const [val, setVal] = useState(value || '')
   const timer = useRef(null)
+
   function handleChange(e) {
     setVal(e.target.value)
     clearTimeout(timer.current)
     timer.current = setTimeout(() => onChange(e.target.value), 800)
   }
+
   return (
-    <input value={val} onChange={handleChange} placeholder={placeholder || 'הערה...'}
+    <input
+      value={val}
+      onChange={handleChange}
+      placeholder={placeholder || 'הערה...'}
       style={{
-        fontSize: 10, padding: '3px 6px', border: '1px solid var(--border-light)',
-        borderRadius: 4, width: 90, background: 'var(--bg-card)', color: 'var(--text-main)',
-        outline: 'none', transition: 'background 0.3s',
+        fontSize: 10, padding: '3px 6px', border: '0.5px solid #ddd',
+        borderRadius: 4, width: 90, background: '#fff', color: '#1a1a1a',
+        outline: 'none',
       }}
     />
   )
 }
 
-// Export button
+// Export to Excel button
 export function ExportButton({ data, columns, filename }) {
   function handleExport() {
     const ws = XLSX.utils.json_to_sheet(data.map(row => {
@@ -134,12 +133,15 @@ export function ExportButton({ data, columns, filename }) {
     XLSX.utils.book_append_sheet(wb, ws, 'נתונים')
     XLSX.writeFile(wb, filename || 'export.xlsx')
   }
+
   return (
     <button onClick={handleExport} style={{
-      fontSize: 12, padding: '5px 12px', border: '1px solid var(--blue)',
-      borderRadius: 6, background: 'transparent', color: 'var(--blue)', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: 4,
-    }}>⬇ ייצוא Excel</button>
+      fontSize: 12, padding: '5px 12px', border: '0.5px solid #378ADD',
+      borderRadius: 6, background: 'transparent', color: '#378ADD', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', gap: 4
+    }}>
+      ⬇ ייצוא Excel
+    </button>
   )
 }
 
@@ -154,7 +156,9 @@ export function SortableTable({ rows, columns, notes, saveNote, rowStyle }) {
   }
 
   const sorted = sortKey ? [...rows].sort((a, b) => {
-    const cmp = String(a[sortKey] ?? '').localeCompare(String(b[sortKey] ?? ''), 'he')
+    const av = a[sortKey] ?? ''
+    const bv = b[sortKey] ?? ''
+    const cmp = String(av).localeCompare(String(bv), 'he')
     return sortDir === 'asc' ? cmp : -cmp
   }) : rows
 
@@ -164,12 +168,13 @@ export function SortableTable({ rows, columns, notes, saveNote, rowStyle }) {
         <thead>
           <tr>
             {columns.map(c => (
-              <th key={c.key} onClick={() => c.sortable !== false && handleSort(c.key)}
+              <th key={c.key}
+                onClick={() => c.sortable !== false && handleSort(c.key)}
                 style={{
-                  background: 'var(--bg-neutral)', padding: '7px 8px', fontWeight: 600,
-                  fontSize: 11, color: 'var(--text-sub)', borderBottom: '1px solid var(--border-tbl)',
-                  whiteSpace: 'nowrap', textAlign: 'right',
-                  cursor: c.sortable !== false ? 'pointer' : 'default', userSelect: 'none',
+                  background: '#f4f4f0', padding: '7px 8px', fontWeight: 600,
+                  fontSize: 11, color: '#555', borderBottom: '0.5px solid #e0e0da',
+                  whiteSpace: 'nowrap', textAlign: 'right', cursor: c.sortable !== false ? 'pointer' : 'default',
+                  userSelect: 'none',
                 }}>
                 {c.label} {sortKey === c.key ? (sortDir === 'asc' ? '↑' : '↓') : c.sortable !== false ? '↕' : ''}
               </th>
@@ -178,23 +183,16 @@ export function SortableTable({ rows, columns, notes, saveNote, rowStyle }) {
         </thead>
         <tbody>
           {sorted.map((row, i) => (
-            <tr key={i} style={rowStyle ? rowStyle(row, i) : {
-              background: row.isBO ? 'var(--red-bg)' : i % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-row)',
-              transition: 'background 0.3s',
-            }}>
+            <tr key={i} style={rowStyle ? rowStyle(row, i) : { background: row.isBO ? '#FCEBEB18' : i % 2 === 0 ? '#fff' : '#fafaf8' }}>
               {columns.map(c => (
-                <td key={c.key} style={{
-                  padding: '6px 8px', borderBottom: '1px solid var(--border-tbl)',
-                  color: 'var(--text-main)', whiteSpace: 'nowrap',
-                  maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis',
-                }}>
+                <td key={c.key} style={{ padding: '6px 8px', borderBottom: '0.5px solid #f0f0ea', color: '#1a1a1a', whiteSpace: 'nowrap', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {c.render ? c.render(row[c.key], row, notes, saveNote) : (row[c.key] ?? '—')}
                 </td>
               ))}
             </tr>
           ))}
           {sorted.length === 0 && (
-            <tr><td colSpan={columns.length} style={{ textAlign: 'center', padding: 20, color: 'var(--text-hint)', fontSize: 13 }}>אין נתונים</td></tr>
+            <tr><td colSpan={columns.length} style={{ textAlign: 'center', padding: 20, color: '#aaa', fontSize: 13 }}>אין נתונים</td></tr>
           )}
         </tbody>
       </table>
@@ -205,9 +203,9 @@ export function SortableTable({ rows, columns, notes, saveNote, rowStyle }) {
 // Page wrapper
 export function PageWrapper({ title, children, topActions }) {
   return (
-    <div style={{ padding: 20, minHeight: '100vh', background: 'var(--bg-page)', transition: 'background 0.3s' }}>
+    <div style={{ padding: 20, minHeight: '100vh' }}>
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16, gap: 12 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', flex: 1 }}>{title}</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 600, color: '#1a1a1a', flex: 1 }}>{title}</h1>
         {topActions}
       </div>
       {children}
@@ -220,7 +218,7 @@ export function LoadingState() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: 12 }}>
       <div style={{ fontSize: 32 }}>⏳</div>
-      <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>טוען נתונים...</div>
+      <div style={{ fontSize: 14, color: '#888' }}>טוען נתונים...</div>
     </div>
   )
 }
@@ -230,8 +228,8 @@ export function EmptyState({ message }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', flexDirection: 'column', gap: 12 }}>
       <div style={{ fontSize: 40 }}>📭</div>
-      <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>{message || 'אין נתונים להצגה'}</div>
-      <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>העלה קובץ Excel כדי להתחיל</div>
+      <div style={{ fontSize: 14, color: '#888' }}>{message || 'אין נתונים להצגה'}</div>
+      <div style={{ fontSize: 12, color: '#aaa' }}>העלה קובץ Excel כדי להתחיל</div>
     </div>
   )
 }
@@ -240,6 +238,7 @@ export function EmptyState({ message }) {
 export function fmtDate(d) {
   if (!d) return '—'
   try {
+    // Parse ISO string directly to avoid timezone offset
     const s = String(d)
     const match = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
     if (match) {
