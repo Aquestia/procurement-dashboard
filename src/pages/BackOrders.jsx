@@ -28,7 +28,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
 
     boItems.forEach(item => {
       item.orders?.forEach(order => {
-        if (!order.isBO) return
+        if (!order.salesOrder) return
         const key = order.slKey || `${order.salesOrder}-${order.lineNumber}`
         if (!lineMap[key]) {
           lineMap[key] = {
