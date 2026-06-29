@@ -3,17 +3,15 @@ import { Badge, fmtDate, PageWrapper } from '../components/shared'
 import * as XLSX from 'xlsx'
 
 const STATUS_OPTIONS = [
-  { value: '',         label: '—',          bg: 'transparent', color: '#888',   border: '#ddd' },
-  { value: 'ממתין',   label: 'ממתין',      bg: '#FFF3CD',     color: '#856404', border: '#FFCA2C' },
-  { value: 'בתהליך',  label: 'בתהליך',     bg: '#E6F1FB',     color: '#185FA5', border: '#378ADD' },
-  { value: 'אושר',    label: 'אושר ✓',     bg: '#EAF3DE',     color: '#3B6D11', border: '#639922' },
-  { value: 'נשלח',    label: 'נשלח ✈',     bg: '#EEEDFE',     color: '#3C3489', border: '#7F77DD' },
-  { value: 'התקבל',   label: 'התקבל ✓✓',  bg: '#D1E7DD',     color: '#0A3622', border: '#75B798' },
+  { value: '',        label: '—',        bg: 'transparent', color: '#888',   border: '#ddd'    },
+  { value: 'בטיפול', label: 'בטיפול',   bg: '#FFF3CD',     color: '#856404', border: '#FFCA2C' },
+  { value: 'טופל',   label: 'טופל ✓',   bg: '#D1E7DD',     color: '#0A3622', border: '#75B798' },
+  { value: 'הטסה',   label: 'הטסה ✈',   bg: '#E6F1FB',     color: '#185FA5', border: '#378ADD' },
 ]
 
 const COLS = [
   { label: 'הערות',          w: 100 },
-  { label: 'סטטוס הטסה',     w: 120 },
+  { label: 'סטטוס טיפול',    w: 110 },
   { label: 'מק"ט',           w: 130 },
   { label: 'תיאור מוצר',     w: 180 },
   { label: 'סטטוס',          w: 65  },
@@ -169,7 +167,7 @@ export default function AirShipment({ data, notes, saveNote, loading }) {
                 const firstOrd   = row.orders?.[0] || {}
                 const po         = firstPO(row)
                 const isExpanded = expandedItem === row.itemNumber
-                const airStatus  = n.air_status || ''
+                const airStatus  = n.treatment_status || ''
                 const airOpt     = STATUS_OPTIONS.find(s => s.value === airStatus) || STATUS_OPTIONS[0]
 
                 return (
@@ -197,7 +195,7 @@ export default function AirShipment({ data, notes, saveNote, loading }) {
                       {/* סטטוס הטסה */}
                       <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
                         <select value={airStatus}
-                          onChange={e => saveNote(row.itemNumber, 'air_status', e.target.value)}
+                          onChange={e => saveNote(row.itemNumber, 'treatment_status', e.target.value)}
                           style={{ fontSize:10, padding:'2px 5px', border:`0.5px solid ${airOpt.border}`, borderRadius:4, background:airOpt.bg, color:airOpt.color, cursor:'pointer' }}>
                           {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                         </select>
