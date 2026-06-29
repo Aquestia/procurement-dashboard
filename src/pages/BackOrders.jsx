@@ -9,7 +9,7 @@ const COLS = [
   { label: 'שורה',           w: 55  },
   { label: 'לקוח',           w: 160 },
   { label: 'ת. אספקה מאושר', w: 110 },
-  { label: 'ערך BO ($)',      w: 110 },
+  { label: 'ערך BO ($)',      w: 120, sortable: true },
   { label: 'מק"טים חסרים',   w: 80  },
 ]
 
@@ -18,6 +18,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   const [filterPO, setFilterPO]         = useState('הכל')
   const [editingRow, setEditingRow]     = useState(null)
   const [expandedKey, setExpandedKey]   = useState(null)
+  const [sortAmt, setSortAmt]           = useState(null) // 'desc' | 'asc' | null
 
   // קיבוץ מחדש: במקום מק"ט → הזמנות, בונים הזמנה+שורה → מק"טים חסרים
   const orderLines = useMemo(() => {
@@ -60,15 +61,16 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
       })
     })
 
-    return Object.values(lineMap).sort((a, b) => {
+    const sorted = Object.values(lineMap).sort((a, b) => {
       if (a.salesOrder < b.salesOrder) return -1
       if (a.salesOrder > b.salesOrder) return 1
       return Number(a.lineNumber) - Number(b.lineNumber)
     })
+    return sorted
   }, [data])
 
   const filtered = useMemo(() => {
-    return orderLines.filter(line => {
+    let result = orderLines.filter(line => {
       if (filterPO === 'ללא הזמנה' && line.shortages.every(s => s.hasPO)) return false
       if (filterPO === 'ללא תאריך' && line.shortages.every(s => !s.hasPO || s.confirmedReceiptDate)) return false
       if (search) {
@@ -181,13 +183,22 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
             <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
-              {COLS.map(({ label, w }) => (
+              {COLS.map(({ label, w, sortable }) => (
                 <th key={label} style={{
                   padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555',
                   borderBottom:'0.5px solid #e0e0da', textAlign:'right',
                   whiteSpace:'nowrap', position:'sticky', top:0,
                   background:'#f4f4f0', zIndex:10, minWidth:w, width:w,
-                }}>{label}</th>
+                  cursor: sortable ? 'pointer' : 'default',
+                  userSelect:'none',
+                }} onClick={sortable ? () => setSortAmt(s => s === 'desc' ? 'asc' : s === 'asc' ? null : 'desc') : undefined}>
+                  <span>{label}</span>
+                  {sortable && (
+                    <span style={{ marginRight:4, color: sortAmt ? '#378ADD' : '#bbb', fontSize:10 }}>
+                      {sortAmt === 'desc' ? ' ▼' : sortAmt === 'asc' ? ' ▲' : ' ⇅'}
+                    </span>
+                  )}
+                </th>
               ))}
             </tr>
           </thead>
