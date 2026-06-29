@@ -88,7 +88,16 @@ function processExcelFile(buffer) {
     return { ...r, boAmount }
   })
   
-  return [{ __meta: true, stageSummary, financials }, ...shortagesWithBO]
+  // סכום פשוט של Back Orders $ מלשונית BO
+  let simpleTotalBO = 0
+  let simpleTotalLines = 0
+  boSheet.forEach(r => {
+    const amt = num(r['Back Orders $'])
+    simpleTotalBO += amt
+    simpleTotalLines++
+  })
+
+  return [{ __meta: true, stageSummary, financials, simpleTotalBO, simpleTotalLines }, ...shortagesWithBO]
 }
 
 
