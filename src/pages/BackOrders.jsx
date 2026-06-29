@@ -2,10 +2,29 @@ import { useState, useMemo, useRef } from 'react'
 import { Badge, fmtDate, LoadingState, EmptyState, PageWrapper } from '../components/shared'
 import * as XLSX from 'xlsx'
 
+const COLS = [
+  { label: 'הערות',          w: 90  },
+  { label: 'מק"ט',           w: 130 },
+  { label: 'תיאור מוצר',     w: 180 },
+  { label: 'סטטוס',          w: 60  },
+  { label: 'פק"ע / הזמנה',   w: 110 },
+  { label: 'הז. מכירה',      w: 110 },
+  { label: 'שורת מכירה',     w: 70  },
+  { label: 'לקוח',           w: 150 },
+  { label: 'ת. אספקה מאושר', w: 110 },
+  { label: 'נדרש',           w: 60  },
+  { label: 'חוסר',           w: 60  },
+  { label: 'הז. רכש',        w: 110 },
+  { label: 'שורת רכש',       w: 70  },
+  { label: 'ספק',            w: 150 },
+  { label: 'כמות הוזמנה',    w: 80  },
+  { label: 'יתרה',           w: 60  },
+  { label: 'ת. קבלה מאושר',  w: 110 },
+]
+
 export default function BackOrders({ data, notes, saveNote, loading }) {
-  const [search, setSearch] = useState('')
-  const [filterPO, setFilterPO] = useState('הכל')
-  const [expandedItem, setExpandedItem] = useState(null)
+  const [search, setSearch]         = useState('')
+  const [filterPO, setFilterPO]     = useState('הכל')
   const [editingRow, setEditingRow] = useState(null)
 
   const boData = useMemo(() => data?.filter(r => r.isBO) || [], [data])
@@ -53,7 +72,6 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
           'הז. מכירה': o.salesOrder || '', 'שורת מכירה': o.lineNumber || '',
           'לקוח': o.customerName || '',
           'ת. אספקה מאושר': fmtDate(o.confirmedShipDate),
-          'ת. אספקה מבוקש': fmtDate(o.requestedShipDate),
           'נדרש': r.totalQtyRequired, 'חוסר': r.shortage,
           'הז. רכש': po.purchaseOrder || '', 'שורת רכש': po.lineNumber || '',
           'ספק': po.vendorName || '', 'כמות הוזמנה': po.quantity || '',
@@ -75,16 +93,26 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     return '—'
   }
 
+  const soDisplay = (r) => {
+    const firstOrder = r.orders?.[0]
+    if (firstOrder?.salesOrder) return firstOrder.salesOrder
+    if (r.prd?.startsWith('SOIL')) return r.prd
+    return '—'
+  }
+
+  const firstPO = (r) => r.purchaseOrders?.[0] || {}
+
   return (
     <PageWrapper title={`Back Orders — ${boData.length} מק"טים`} topActions={
       <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'0.5px solid #378ADD', borderRadius:6, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ ייצוא Excel</button>
     }>
+
       {/* KPI cards */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:16 }}>
         {[
-          { label:'סה"כ מק"טים BO', value:kpis.total, amt:kpis.totalAmt, color:'#A32D2D' },
-          { label:'ללא תאריך רכש', value:kpis.noDate, amt:kpis.noDateAmt, color:'#854F0B' },
-          { label:'ללא הזמנת רכש', value:kpis.noPO, amt:kpis.noPOAmt, color:'#A32D2D' },
+          { label:'סה"כ מק"טים BO', value:kpis.total,  amt:kpis.totalAmt,  color:'#A32D2D' },
+          { label:'ללא תאריך רכש',  value:kpis.noDate, amt:kpis.noDateAmt, color:'#854F0B' },
+          { label:'ללא הזמנת רכש',  value:kpis.noPO,   amt:kpis.noPOAmt,   color:'#A32D2D' },
         ].map((k,i) => (
           <div key={i} style={{ background:'#f4f4f0', borderRadius:8, padding:'12px 14px' }}>
             <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{k.label}</div>
@@ -108,113 +136,135 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
         <span style={{ fontSize:11, color:'#999', marginRight:'auto' }}>{filtered.length} מק"טים</span>
       </div>
 
-      {/* List */}
-      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {filtered.map((item, i) => {
-          const n = notes[item.itemNumber] || {}
-          const firstOrder = item.orders?.[0]
-          const firstPO = item.purchaseOrders?.[0]
-          const isExpanded = expandedItem === item.itemNumber
-          const hasNote = !!(n.note_procurement || n.note_tapi)
+      {/* Table */}
+      <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 320px)' }}>
+        <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
+          <thead>
+            <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
+              {COLS.map(({ label, w }) => (
+                <th key={label} style={{
+                  padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555',
+                  borderBottom:'0.5px solid #e0e0da', textAlign:'right',
+                  whiteSpace:'nowrap', position:'sticky', top:0,
+                  background:'#f4f4f0', zIndex:10, minWidth: w, width: w,
+                }}>{label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row, i) => {
+              const n        = notes[row.itemNumber] || {}
+              const hasNote  = !!(n.note_procurement || n.note_tapi)
+              const firstOrd = row.orders?.[0] || {}
+              const po       = firstPO(row)
 
-          return (
-            <div key={i} style={{ background:'#fff', border:`0.5px solid ${!item.hasPO?'#F09595':'#e0e0da'}`, borderRadius:10, overflow:'hidden' }}>
-              {/* Header row */}
-              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'#FCEBEB18', cursor:'pointer' }}
-                onClick={() => setExpandedItem(isExpanded ? null : item.itemNumber)}>
-                <div style={{ flex:1 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3, flexWrap:'wrap' }}>
-                    <span style={{ fontSize:13, fontWeight:600 }}>{item.itemNumber}</span>
+              return (
+                <tr key={i} style={{
+                  background: !row.hasPO ? '#FCEBEB18' : i%2===0 ? '#fff' : '#fafaf8',
+                  cursor:'default',
+                }}>
+                  {/* הערות */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
+                    <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                      {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                      {n.note_tapi        && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                      <button onClick={() => setEditingRow(row)} style={{
+                        fontSize:10, padding:'1px 6px', borderRadius:4,
+                        border:'0.5px solid #ddd',
+                        background: hasNote ? '#E6F1FB' : '#f4f4f0',
+                        color: hasNote ? '#185FA5' : '#555',
+                        cursor:'pointer',
+                      }}>✏️</button>
+                    </div>
+                  </td>
+
+                  {/* מק"ט */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>
+                    {row.itemNumber}
+                  </td>
+
+                  {/* תיאור */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {row.productName||'—'}
+                  </td>
+
+                  {/* סטטוס */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
                     <Badge status='BO' />
-                    <span style={{ fontSize:11, color:'#555', background:'#f0f0ea', padding:'1px 7px', borderRadius:4 }}>{prdDisplay(item)}</span>
-                    {!item.hasPO && <span style={{ fontSize:10, background:'#FCEBEB', color:'#A32D2D', padding:'1px 6px', borderRadius:6 }}>ללא הז. רכש</span>}
-                    {item.hasPO && !item.confirmedReceiptDate && <span style={{ fontSize:10, background:'#FAEEDA', color:'#854F0B', padding:'1px 6px', borderRadius:6 }}>ללא תאריך</span>}
-                  </div>
-                  <div style={{ fontSize:11, color:'#666' }}>{item.productName}</div>
-                </div>
-                <div style={{ display:'flex', gap:14, fontSize:11, color:'#555', flexShrink:0, flexWrap:'wrap' }}>
-                  <div><span style={{ color:'#888' }}>הז: </span><strong>{firstOrder?.salesOrder||'—'}</strong></div>
-                  <div><span style={{ color:'#888' }}>לקוח: </span><strong style={{ maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', display:'inline-block' }}>{firstOrder?.customerName||'—'}</strong></div>
-                  <div><span style={{ color:'#888' }}>נדרש: </span><strong>{item.totalQtyRequired}</strong></div>
-                  <div><span style={{ color:'#888' }}>חוסר: </span><strong style={{ color:'#A32D2D' }}>{item.shortage}</strong></div>
-                  <div><span style={{ color:'#888' }}>אספקה: </span><strong>{fmtDate(firstOrder?.confirmedShipDate)||'—'}</strong></div>
-                  <div><span style={{ color:'#888' }}>קבלה: </span><strong style={{ color:!item.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(item.confirmedReceiptDate)||'—'}</strong></div>
-                  <div><span style={{ color:'#888' }}>ספק: </span><strong>{item.vendors?.[0]||'—'}</strong></div>
-                  {item.hasPO && <div><span style={{ color:'#888' }}>הז.רכש: </span><strong>{firstPO?.purchaseOrder||'—'}</strong></div>}
-                </div>
+                  </td>
 
-                {/* כפתור הערה */}
-                <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }} onClick={e => e.stopPropagation()}>
-                  {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                  {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
-                  <button
-                    onClick={e => { e.stopPropagation(); setEditingRow(item) }}
-                    style={{ fontSize:10, padding:'2px 7px', borderRadius:4, border:'0.5px solid #ddd', background: hasNote ? '#E6F1FB' : '#f4f4f0', color: hasNote ? '#185FA5' : '#555', cursor:'pointer' }}>
-                    ✏️
-                  </button>
-                </div>
+                  {/* פק"ע */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, color:'#555', whiteSpace:'nowrap' }}>
+                    {prdDisplay(row)}
+                  </td>
 
-                <span style={{ fontSize:12, color:'#378ADD', flexShrink:0 }}>{isExpanded?'▲':'▼'}</span>
-              </div>
+                  {/* הז. מכירה */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>
+                    {soDisplay(row)}
+                  </td>
 
-              {/* Expanded */}
-              {isExpanded && (
-                <div style={{ padding:'12px 14px', borderTop:'0.5px solid #f0e0e0' }}>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                    {/* Sales orders */}
-                    <div>
-                      <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>הזמנות מכירה ({item.orders?.length||0})</div>
-                      <div style={{ overflowX:'auto' }}>
-                        <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
-                          <thead><tr>{['הזמנה','שורה','לקוח','ת. מאושר','ת. מבוקש','כמות'].map(h=>(
-                            <th key={h} style={{ background:'#f4f4f0', padding:'4px 7px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
-                          ))}</tr></thead>
-                          <tbody>{item.orders?.map((o,j)=>(
-                            <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
-                              <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||'—'}</td>
-                              <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
-                              <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
-                              <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
-                              <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
-                              <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{o.qtyRequired||'—'}</td>
-                            </tr>
-                          ))}</tbody>
-                        </table>
-                      </div>
-                    </div>
-                    {/* Purchase orders */}
-                    <div>
-                      <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>הזמנות רכש ({item.purchaseOrders?.length||0})</div>
-                      {!item.hasPO
-                        ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש</div>
-                        : <div style={{ overflowX:'auto' }}>
-                            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
-                              <thead><tr>{['הז. רכש','שורה','ספק','כמות','יתרה','ת. קבלה'].map(h=>(
-                                <th key={h} style={{ background:'#f4f4f0', padding:'4px 7px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
-                              ))}</tr></thead>
-                              <tbody>{item.purchaseOrders?.map((po,j)=>(
-                                <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
-                                  <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
-                                  <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
-                                  <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', maxWidth:100, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
-                                  <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity||'—'}</td>
-                                  <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
-                                  <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>
-                                    {fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}
-                                  </td>
-                                </tr>
-                              ))}</tbody>
-                            </table>
-                          </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-        {filtered.length === 0 && <EmptyState message='אין Back Orders' />}
+                  {/* שורת מכירה */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>
+                    {firstOrd.lineNumber||'—'}
+                  </td>
+
+                  {/* לקוח */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {firstOrd.customerName||'—'}
+                  </td>
+
+                  {/* ת. אספקה מאושר */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: firstOrd.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>
+                    {fmtDate(firstOrd.confirmedShipDate)||'—'}
+                  </td>
+
+                  {/* נדרש */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>
+                    {row.totalQtyRequired}
+                  </td>
+
+                  {/* חוסר */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color: row.shortage > 0 ? '#A32D2D' : '#3B6D11', fontWeight:600 }}>
+                    {row.shortage}
+                  </td>
+
+                  {/* הז. רכש */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
+                    {!row.hasPO
+                      ? <span style={{ color:'#A32D2D', fontSize:10 }}>❌ ללא הז. רכש</span>
+                      : po.purchaseOrder||'—'}
+                  </td>
+
+                  {/* שורת רכש */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>
+                    {po.lineNumber||'—'}
+                  </td>
+
+                  {/* ספק */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                    {row.vendors?.join(', ')||'—'}
+                  </td>
+
+                  {/* כמות הוזמנה */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
+                    {po.quantity||'—'}
+                  </td>
+
+                  {/* יתרה */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>
+                    {po.deliverRemainder||'—'}
+                  </td>
+
+                  {/* ת. קבלה מאושר */}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: !row.confirmedReceiptDate ? '#A32D2D' : '#1a1a1a' }}>
+                    {fmtDate(row.confirmedReceiptDate)||'⚠️ חסר'}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+        {filtered.length === 0 && <div style={{ padding:30, textAlign:'center', color:'#aaa' }}>אין Back Orders</div>}
       </div>
 
       {/* Notes Modal */}
@@ -234,7 +284,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
 function NotesModal({ row, notes, onSave, onClose }) {
   const [procNote, setProcNote] = useState(notes.note_procurement || '')
   const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
-  const [saving, setSaving] = useState(false)
+  const [saving, setSaving]     = useState(false)
 
   async function handleSave() {
     setSaving(true)
@@ -255,8 +305,6 @@ function NotesModal({ row, notes, onSave, onClose }) {
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
       <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
         onClick={e => e.stopPropagation()}>
-
-        {/* Header */}
         <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
@@ -264,48 +312,36 @@ function NotesModal({ row, notes, onSave, onClose }) {
           </div>
           <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'#888', lineHeight:1 }}>✕</button>
         </div>
-
-        {/* Note fields */}
         <NoteField label='הערת רכש' value={procNote} onChange={setProcNote} color='#185FA5' />
         <div style={{ height:12 }} />
         <NoteField label='הערת תפ"י' value={tapiNote} onChange={setTapiNote} color='#3B6D11' />
-
-        {/* Actions */}
-        <div style={{ display:'flex', gap:8, marginTop:20, justifyContent:'flex-start' }}>
-          <button onClick={handleSave} disabled={saving} style={{
-            fontSize:13, padding:'8px 20px', borderRadius:7, border:'none',
-            background:'#378ADD', color:'#fff', cursor:'pointer', fontWeight:600
-          }}>{saving ? 'שומר...' : '💾 שמור'}</button>
-          <button onClick={handleClear} style={{
-            fontSize:13, padding:'8px 16px', borderRadius:7,
-            border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer'
-          }}>🗑 מחק הערות</button>
-          <button onClick={onClose} style={{
-            fontSize:13, padding:'8px 16px', borderRadius:7,
-            border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer'
-          }}>ביטול</button>
+        <div style={{ display:'flex', gap:8, marginTop:20 }}>
+          <button onClick={handleSave} disabled={saving} style={{ fontSize:13, padding:'8px 20px', borderRadius:7, border:'none', background:'#378ADD', color:'#fff', cursor:'pointer', fontWeight:600 }}>
+            {saving ? 'שומר...' : '💾 שמור'}
+          </button>
+          <button onClick={handleClear} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer' }}>
+            🗑 מחק הערות
+          </button>
+          <button onClick={onClose} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer' }}>
+            ביטול
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-// ── Note Field with formatting toolbar ───────────────────────────
+// ── Note Field ────────────────────────────────────────────────────
 function NoteField({ label, value, onChange, color }) {
   const ref = useRef(null)
 
   function insertFormat(prefix, suffix) {
     const el = ref.current
     if (!el) return
-    const start = el.selectionStart
-    const end = el.selectionEnd
-    const selected = value.slice(start, end)
-    const newVal = value.slice(0, start) + prefix + selected + suffix + value.slice(end)
+    const start = el.selectionStart, end = el.selectionEnd
+    const newVal = value.slice(0, start) + prefix + value.slice(start, end) + suffix + value.slice(end)
     onChange(newVal)
-    setTimeout(() => {
-      el.focus()
-      el.setSelectionRange(start + prefix.length, end + prefix.length)
-    }, 0)
+    setTimeout(() => { el.focus(); el.setSelectionRange(start + prefix.length, end + prefix.length) }, 0)
   }
 
   return (
@@ -314,37 +350,24 @@ function NoteField({ label, value, onChange, color }) {
         <span style={{ fontSize:12, fontWeight:600, color }}>{label}</span>
         <div style={{ display:'flex', gap:4, marginRight:'auto' }}>
           {[
-            { label:'B', title:'מודגש', prefix:'**', suffix:'**', style:{ fontWeight:700 } },
-            { label:'I', title:'נטוי', prefix:'_', suffix:'_', style:{ fontStyle:'italic' } },
-            { label:'U', title:'קו תחתי', prefix:'__', suffix:'__', style:{ textDecoration:'underline' } },
+            { label:'B', prefix:'**', suffix:'**', style:{ fontWeight:700 } },
+            { label:'I', prefix:'_',  suffix:'_',  style:{ fontStyle:'italic' } },
+            { label:'U', prefix:'__', suffix:'__', style:{ textDecoration:'underline' } },
           ].map(btn => (
-            <button key={btn.label} title={btn.title} onClick={() => insertFormat(btn.prefix, btn.suffix)}
+            <button key={btn.label} onClick={() => insertFormat(btn.prefix, btn.suffix)}
               style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer', ...btn.style }}>
               {btn.label}
             </button>
           ))}
-          <button title='רשימה' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n• ' : '• ')); setTimeout(()=>ref.current?.focus(),0) }}
-            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
-            •
-          </button>
-          <button title='מספור' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n1. ' : '1. ')); setTimeout(()=>ref.current?.focus(),0) }}
-            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
-            1.
-          </button>
+          <button onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n• ' : '• ')); setTimeout(()=>ref.current?.focus(),0) }}
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>•</button>
+          <button onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n1. ' : '1. ')); setTimeout(()=>ref.current?.focus(),0) }}
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>1.</button>
         </div>
       </div>
-      <textarea
-        ref={ref}
-        value={value}
-        onChange={e => onChange(e.target.value)}
+      <textarea ref={ref} value={value} onChange={e => onChange(e.target.value)}
         placeholder={`כתוב ${label} כאן...`}
-        style={{
-          width:'100%', height:120, fontSize:13, padding:'10px 12px',
-          border:`1px solid ${color}40`, borderRadius:8, resize:'vertical',
-          background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6,
-          fontFamily:'inherit', direction:'rtl', textAlign:'right',
-          outline:'none', boxSizing:'border-box',
-        }}
+        style={{ width:'100%', height:120, fontSize:13, padding:'10px 12px', border:`1px solid ${color}40`, borderRadius:8, resize:'vertical', background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6, fontFamily:'inherit', direction:'rtl', textAlign:'right', outline:'none', boxSizing:'border-box' }}
       />
     </div>
   )
