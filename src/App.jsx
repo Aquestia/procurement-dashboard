@@ -105,7 +105,7 @@ export default function App() {
     overview:        <Overview data={data} loading={loading} stageSummary={stageSummary} financials={financials} notes={notes} saveNote={saveNote} />,
     procurement:     <ProcurementView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     tapi:            <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
-    backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,
+    backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} financials={financials} />,
     recommendations: <Recommendations data={data} notes={notes} loading={loading} />,
     air_shipment:    <AirShipment data={data} notes={notes} loading={loading} />,
     tapi_requests:   <TapiRequests />,
