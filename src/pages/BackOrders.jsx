@@ -13,7 +13,7 @@ const COLS = [
   { label: 'מק"טים חסרים',   w: 90, sortable: 'items' },
 ]
 
-export default function BackOrders({ data, notes, saveNote, loading }) {
+export default function BackOrders({ data, notes, saveNote, loading, financials }) {
   const [search, setSearch]             = useState('')
   const [filterPO, setFilterPO]         = useState('הכל')
   const [editingRow, setEditingRow]     = useState(null)
@@ -91,8 +91,8 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   }, [orderLines, filterPO, search, sortAmt, sortItems])
 
   const kpis = useMemo(() => {
-    const totalBoAmount = data?.totalBoAmount || 0
-    const totalBoLines  = data?.totalBoLines  || 0
+    const totalBoAmount = financials?.totalBO || 0
+    const totalBoLines  = financials?.totalBoLines || orderLines.length
     const noPO   = orderLines.filter(l => (l.shortages||[]).some(s => !s.hasPO))
     const noDate = orderLines.filter(l => (l.shortages||[]).some(s => s.hasPO && !s.confirmedReceiptDate))
     const uniqueItems = new Set()
