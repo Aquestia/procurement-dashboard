@@ -63,16 +63,26 @@ function str(v) {
 function buildBOSet(boRows) {
   const boItems = new Set()
   const boOrders = new Set()
+  const boAmountBySlKey = {}  // slKey -> Back Orders $
   boRows.forEach(r => {
     const item = str(r['Item Code'])
     const doc = str(r['Doc'])
     const line = r['Line'] !== null ? String(r['Line']).split('.')[0].trim() : ''
     const sl = str(r['S & L']).replace(/\s+/g, '')
+    const amt = r['Back Orders $'] || r['Back Order $'] || r['Back orders $'] || r['Back order $'] || 0
     if (item) boItems.add(item)
     if (doc && line) boOrders.add(`${doc}-${line}`)
-    if (sl) boOrders.add(sl)
+    if (sl) {
+      boOrders.add(sl)
+      // שמירת הסכום לפי slKey — אם כבר קיים לא מחליפים
+      if (!boAmountBySlKey[sl]) boAmountBySlKey[sl] = typeof amt === 'number' ? amt : parseFloat(String(amt).replace(/,/g,'')) || 0
+    }
+    if (doc && line) {
+      const key = `${doc}-${line}`
+      if (!boAmountBySlKey[key]) boAmountBySlKey[key] = typeof amt === 'number' ? amt : parseFloat(String(amt).replace(/,/g,'')) || 0
+    }
   })
-  return { boItems, boOrders }
+  return { boItems, boOrders, boAmountBySlKey }
 }
 
 function buildPOByItem(openPO) {
@@ -176,7 +186,7 @@ function determineStage(references, dr4Map, dr5Map, orderByPRD) {
 }
 
 function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) {
-  const { boItems, boOrders } = boSet
+  const { boItems, boOrders, boAmountBySlKey } = boSet
   const { slToOrder } = orderByPRD
   const itemMap = {}
 
@@ -231,6 +241,7 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
         isBO,
         pool: str(r['Pool']),
         remainingAmount: r['Remainig amount main currency'] || 0,
+        boAmount: boAmountBySlKey[slKey] || boAmountBySlKey[salesOrder + rawLine] || 0,
         qtyRequired: r['Requested quantity'] || 0,
         qtyPicked: r['Picked quantity'] || 0,
         onOrder: r['On order'] || 0,
