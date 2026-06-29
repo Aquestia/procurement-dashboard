@@ -94,3 +94,21 @@ body {
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-card); border-radius: 9999px; }
+
+/* ── Dark Mode Contrast Fixes ── */
+.dark {
+  /* Stronger contrast for table cells */
+  --text-on-card: #F0F0EA;
+}
+
+/* Ensure all td/th text is visible in dark mode */
+.dark td, .dark th {
+  color: var(--text-main) !important;
+}
+
+/* Override any remaining white backgrounds in dark mode */
+.dark [style*="background: '#fff'"],
+.dark [style*="background:'#fff'"],
+.dark [style*="background: 'white'"] {
+  background: var(--bg-card) !important;
+}

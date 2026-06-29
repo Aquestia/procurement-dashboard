@@ -262,9 +262,9 @@ export default function Overview({ data, loading, stageSummary, financials, note
                               onClick={() => setEditingRow(r)}
                               style={{
                                 fontSize:10, padding:'3px 7px', borderRadius:5, cursor:'pointer',
-                                border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '1px solid var(--border-light)',
-                                background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
-                                color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
+                                border: (n.note_procurement || n.note_tapi) ? '1px solid var(--blue)' : '1px solid var(--border-light)',
+                                background: (n.note_procurement || n.note_tapi) ? 'var(--blue-bg)' : 'transparent',
+                                color: (n.note_procurement || n.note_tapi) ? 'var(--blue-dark)' : 'var(--text-muted)',
                                 fontWeight: (n.note_procurement || n.note_tapi) ? 600 : 400,
                               }}>
                               ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
@@ -405,7 +405,7 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
   }
 
   return (
-    <div style={{ background:'var(--bg-page)', borderRadius:8, padding:'10px 12px', cursor:'pointer', position:'relative' }}
+    <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:8, padding:'10px 12px', cursor:'pointer', position:'relative', transition:'background 0.3s' }}
       onClick={() => rows && setOpen(o => !o)}>
       {info && (
         <div style={{ position:'absolute', top:6, left:8 }}>
@@ -414,7 +414,7 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
             style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'var(--text-muted)', fontSize:10, cursor:'pointer', fontWeight:600, lineHeight:'14px', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}
             title='מידע'>i</button>
           {showInfo && (
-            <div style={{ position:'absolute', bottom:20, left:0, background:'var(--bg-neutral)', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}
+            <div style={{ position:'absolute', bottom:20, left:0, background:'var(--bg-card)', color:'var(--text-main)', boxShadow:'0 4px 16px rgba(0,0,0,0.15)', border:'1px solid var(--border-card)', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}
               onClick={e => e.stopPropagation()}>
               {info}
             </div>
@@ -428,7 +428,7 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
       {open && rows && (
         <div style={{ marginTop:10 }} onClick={e => e.stopPropagation()}>
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
-            <button onClick={exportRows} style={{ fontSize:10, padding:'3px 8px', border:'1pxx solid #378ADD', borderRadius:5, background:'#378ADD', color:'#fff', cursor:'pointer' }}>ייצוא Excel</button>
+            <button onClick={exportRows} style={{ fontSize:10, padding:'3px 8px', border:'1px solid var(--blue)', borderRadius:5, background:'var(--blue)', color:'#fff', cursor:'pointer' }}>ייצוא Excel</button>
           </div>
           <div style={{ overflowX:'auto', maxHeight:300, overflowY:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:1000 }}>
@@ -451,9 +451,9 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
                             onClick={e => { e.stopPropagation(); onEditNote && onEditNote(r) }}
                             style={{
                               fontSize:10, padding:'2px 6px', borderRadius:4, cursor:'pointer',
-                              border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '1px solid var(--border-light)',
-                              background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
-                              color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
+                              border: (n.note_procurement || n.note_tapi) ? '1px solid var(--blue)' : '1px solid var(--border-light)',
+                              background: (n.note_procurement || n.note_tapi) ? 'var(--blue-bg)' : 'transparent',
+                              color: (n.note_procurement || n.note_tapi) ? 'var(--blue-dark)' : 'var(--text-muted)',
                             }}>
                             ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
                           </button>
@@ -468,12 +468,12 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, verticalAlign:'top' }}>{r.totalQtyRequired}</td>}
                       {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontSize:10, color:'var(--text-sub)', verticalAlign:'top', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>}
                       <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{po.quantity||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, color: po.deliverRemainder>0?'#185FA5':'#888' }}>{po.deliverRemainder||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, color: po.deliverRemainder>0?'var(--blue-dark)':'var(--text-muted)' }}>{po.deliverRemainder||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)' }}>{po.lineNumber||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{o.salesOrder || (r.prd?.startsWith('SOIL') ? r.prd : '—')}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)' }}>{o.lineNumber||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color: po.confirmedReceiptDate ? '#1a1a1a' : '#A32D2D' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color: po.confirmedReceiptDate ? 'var(--text-main)' : 'var(--red-dark)' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
                       <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
                     </tr>
                   ))
@@ -512,7 +512,7 @@ function BottleneckPanel({ bn }) {
         <span style={{ fontSize:11, fontWeight:600 }}>{bn.item} — {bn.productName}</span>
         <Badge status={bn.stage} />
         <span style={{ fontSize:10, color:'var(--text-muted)', marginRight:'auto' }}>נדרש: <strong>{bn.totalQtyRequired}</strong> | חוסר: <strong style={{ color:'var(--red-dark)' }}>{bn.shortage}</strong></span>
-        <button onClick={exportBN} style={{ fontSize:10, padding:'3px 8px', border:'1pxx solid #378ADD', borderRadius:5, background:'#378ADD', color:'#fff', cursor:'pointer' }}>⬇ Excel</button>
+        <button onClick={exportBN} style={{ fontSize:10, padding:'3px 8px', border:'1px solid var(--blue)', borderRadius:5, background:'var(--blue)', color:'#fff', cursor:'pointer' }}>⬇ Excel</button>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
         <div>
@@ -572,7 +572,7 @@ function ChartCard({ title, children, onExport, info }) {
           <div style={{ position:'relative' }}>
             <button onClick={() => setShowInfo(s=>!s)} style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'var(--text-muted)', fontSize:10, cursor:'pointer', fontWeight:600, padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>i</button>
             {showInfo && (
-              <div style={{ position:'absolute', top:20, left:-100, background:'var(--bg-neutral)', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}>
+              <div style={{ position:'absolute', top:20, left:-100, background:'var(--bg-card)', color:'var(--text-main)', boxShadow:'0 4px 16px rgba(0,0,0,0.15)', border:'1px solid var(--border-card)', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}>
                 {info}
               </div>
             )}
