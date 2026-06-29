@@ -104,7 +104,7 @@ export default function App() {
     tapi:            <TapiView data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     backorders:      <BackOrders data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     recommendations: <Recommendations data={data} notes={notes} loading={loading} />,
-    air_shipment:    <AirShipment data={data} notes={notes} loading={loading} />,
+    air_shipment:    <AirShipment data={data} notes={notes} saveNote={saveNote} loading={loading} />,
     tapi_requests:   <TapiRequests />,
     files:           adminUnlocked
       ? <FileManager activeFile={activeFile} onFileChange={loadActiveFile} />
