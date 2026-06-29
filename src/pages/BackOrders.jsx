@@ -13,6 +13,30 @@ const COLS = [
   { label: 'מק"טים חסרים',   w: 90, sortable: 'items' },
 ]
 
+
+function DateFlag({ shipDate, receiptDate }) {
+  if (!shipDate && !receiptDate) return null
+  if (!receiptDate) {
+    return (
+      <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, background:'#FAEEDA', color:'#854F0B', padding:'2px 6px', borderRadius:4, fontWeight:500, whiteSpace:'nowrap' }}>
+        ⚠ חסר תאריך קבלה
+      </span>
+    )
+  }
+  if (!shipDate) return null
+  const ship    = new Date(shipDate)
+  const receipt = new Date(receiptDate)
+  const diff    = Math.round((receipt - ship) / (1000 * 60 * 60 * 24))
+  if (diff > 0) {
+    return (
+      <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, background:'#FCEBEB', color:'#A32D2D', padding:'2px 6px', borderRadius:4, fontWeight:500, whiteSpace:'nowrap' }}>
+        ⚠ איחור של {diff} יום
+      </span>
+    )
+  }
+  return null
+}
+
 export default function BackOrders({ data, notes, saveNote, loading, financials }) {
   const [search, setSearch]             = useState('')
   const [filterPO, setFilterPO]         = useState('הכל')
