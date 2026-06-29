@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from 'react'
+
+  { label: 'התראה',        info: 'התראה על אי-התאמה בין תאריך אספקה מאושר ללקוח לבין צפי קבלה מהספק.' },import React, { useState, useMemo, useRef } from 'react'
 import { Badge, PageWrapper, LoadingState, EmptyState, fmtDate } from '../components/shared'
 import * as XLSX from 'xlsx'
 
@@ -8,6 +9,30 @@ const STATUS_OPTIONS = [
   { value: 'טופל', label: 'טופל ✓', bg: '#D1E7DD', color: '#0A3622', border: '#75B798' },
   { value: 'הטסה', label: 'הטסה ✈', bg: '#E6F1FB', color: '#185FA5', border: '#378ADD' },
 ]
+
+
+function DateFlag({ shipDate, receiptDate }) {
+  if (!shipDate && !receiptDate) return null
+  if (!receiptDate) {
+    return (
+      <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, background:'#FAEEDA', color:'#854F0B', padding:'2px 6px', borderRadius:4, fontWeight:500, whiteSpace:'nowrap' }}>
+        ⚠ חסר תאריך קבלה
+      </span>
+    )
+  }
+  if (!shipDate) return null
+  const ship    = new Date(shipDate)
+  const receipt = new Date(receiptDate)
+  const diff    = Math.round((receipt - ship) / (1000 * 60 * 60 * 24))
+  if (diff > 0) {
+    return (
+      <span style={{ display:'inline-flex', alignItems:'center', gap:3, fontSize:10, background:'#FCEBEB', color:'#A32D2D', padding:'2px 6px', borderRadius:4, fontWeight:500, whiteSpace:'nowrap' }}>
+        ⚠ איחור של {diff} יום
+      </span>
+    )
+  }
+  return null
+}
 
 export default function TapiView({ data, notes, saveNote, loading }) {
   const [confirmedMonth, setConfirmedMonth] = useState(null)
@@ -309,6 +334,9 @@ export default function TapiView({ data, notes, saveNote, loading }) {
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(firstPO(row).confirmedReceiptDate)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>
+                    <DateFlag shipDate={row.orders?.[0]?.confirmedShipDate} receiptDate={firstPO(row).confirmedReceiptDate} />
+                  </td>
                   <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display:'flex', gap:4, alignItems:'center' }}>
                       {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
