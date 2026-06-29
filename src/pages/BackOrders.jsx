@@ -40,7 +40,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
             customerName:      order.customerName,
             confirmedShipDate: order.confirmedShipDate,
             requestedShipDate: order.requestedShipDate,
-            remainingAmount:   order.remainingAmount || 0,  // נלקח פעם אחת בלבד — כשהשורה נוצרת
+            remainingAmount:   order.boAmount || order.remainingAmount || 0,  // boAmount מ-BO sheet, fallback ל-remainingAmount
             shortages: [],
           }
         }
