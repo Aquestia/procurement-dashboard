@@ -4,9 +4,9 @@ import * as XLSX from 'xlsx'
 
 const STATUS_OPTIONS = [
   { value: '', label: '—', bg: 'transparent', color: 'var(--text-muted)', border: '#ddd' },
-  { value: 'בטיפול', label: 'בטיפול', bg: 'var(--yellow-bg)'D', color: '#856404', border: '#FFCA2C' },
-  { value: 'טופל', label: 'טופל ✓', bg: '#D1E7DD', color: '#0A3622', border: '#75B798' },
-  { value: 'הטסה', label: 'הטסה ✈', bg: '#E6F1FB', color: '#185FA5', border: '#378ADD' },
+  { value: 'בטיפול', label: 'בטיפול', bg: 'var(--yellow-bg)', color: 'var(--amber-txt)', border: 'var(--yellow-bdr)' },
+  { value: 'טופל', label: 'טופל ✓', bg: 'var(--green-bg)', color: 'var(--green-dark)', border: 'var(--green-bdr)' },
+  { value: 'הטסה', label: 'הטסה ✈', bg: 'var(--blue-bg)', color: 'var(--blue-dark)', border: 'var(--blue)' },
 ]
 
 export default function TapiView({ data, notes, saveNote, loading }) {
@@ -284,7 +284,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
               return (
               <React.Fragment key={i}>
                 <tr key={i}
-                  style={{ background: treatment==='טופל'?'var(--green-bg)':treatment==='בטיפול'?'var(--yellow-bg)'D22':treatment==='הטסה'?'#E6F1FB33':row.isBO?'#FCEBEB18':i%2===0?'var(--bg-card)':'var(--bg-row)', cursor:'pointer' }}
+                  style={{ background: treatment==='טופל'?'var(--green-bg)':treatment==='בטיפול'?'var(--yellow-bg)':treatment==='הטסה'?'var(--blue-bg)':row.isBO?'var(--red-bg)':i%2===0?'var(--bg-card)':'var(--bg-row)', cursor:'pointer' }}
                   onClick={() => setExpandedItem(expandedItem===row.itemNumber ? null : row.itemNumber)}>
                   <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }} onClick={e => e.stopPropagation()}>
                     <select value={treatment} onChange={e => saveNote(row.itemNumber, 'treatment_status', e.target.value)}
