@@ -57,15 +57,15 @@ export default function Summaries({ data, loading }) {
           { label: 'שורות לא BO', val: stats.nonBo.length, color: '#3B6D11' },
           { label: 'סכום BO $', val: `$${Math.round(stats.boUSD).toLocaleString()}`, color: '#A32D2D' },
         ].map((k, i) => (
-          <div key={i} style={{ background: '#f4f4f0', borderRadius: 8, padding: '10px 14px' }}>
-            <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>{k.label}</div>
+          <div key={i} style={{ background: 'var(--bg-page)', borderRadius: 8, padding: '10px 14px' }}>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>{k.label}</div>
             <div style={{ fontSize: 22, fontWeight: 600, color: k.color || '#1a1a1a' }}>{k.val}</div>
           </div>
         ))}
       </div>
 
       {/* Monthly chart */}
-      <div style={{ background: '#fff', border: '0.5px solid #e5e5e0', borderRadius: 10, padding: 16, marginBottom: 16 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid #e5e5e0', borderRadius: 10, padding: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>השפעה חודשית — שורות ו-BO</div>
         <ResponsiveContainer width='100%' height={200}>
           <BarChart data={stats.monthSummary} margin={{ top: 4, right: 4, left: -20, bottom: 4 }}>
@@ -79,8 +79,8 @@ export default function Summaries({ data, loading }) {
       </div>
 
       {/* Item summary table */}
-      <div style={{ background: '#fff', border: '0.5px solid #e5e5e0', borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: '0.5px solid #e5e5e0', display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid #e5e5e0', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e5e0', display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 13, fontWeight: 600 }}>סיכום לפי מק"ט</span>
           <span style={{ marginRight: 'auto' }}>
             <ExportButton data={stats.itemSummary}
@@ -100,21 +100,21 @@ export default function Summaries({ data, loading }) {
             <thead>
               <tr>
                 {['מק"ט', 'סה"כ הזמנות', 'הזמנות BO', '% BO', 'סה"כ $', 'BO $'].map(h => (
-                  <th key={h} style={{ background: '#f4f4f0', padding: '7px 10px', fontWeight: 600, fontSize: 11, color: '#555', borderBottom: '0.5px solid #e0e0da', textAlign: 'right', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ background: 'var(--bg-page)', padding: '7px 10px', fontWeight: 600, fontSize: 11, color: 'var(--text-sub)', borderBottom: '1px solid #e0e0da', textAlign: 'right', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {stats.itemSummary.slice(0, 100).map((row, i) => (
-                <tr key={i} style={{ background: row.boOrders > 0 ? '#FCEBEB18' : i % 2 === 0 ? '#fff' : '#fafaf8' }}>
-                  <td style={{ padding: '6px 10px', borderBottom: '0.5px solid #f0f0ea', fontWeight: 500 }}>{row.itemNumber}</td>
-                  <td style={{ padding: '6px 10px', borderBottom: '0.5px solid #f0f0ea' }}>{row.totalOrders}</td>
-                  <td style={{ padding: '6px 10px', borderBottom: '0.5px solid #f0f0ea', color: row.boOrders > 0 ? '#A32D2D' : '#1a1a1a', fontWeight: row.boOrders > 0 ? 600 : 400 }}>{row.boOrders}</td>
-                  <td style={{ padding: '6px 10px', borderBottom: '0.5px solid #f0f0ea' }}>
+                <tr key={i} style={{ background: row.boOrders > 0 ? 'var(--red-bg)' : i % 2 === 0 ? 'var(--bg-card)':'var(--bg-row)' }}>
+                  <td style={{ padding: '6px 10px', borderBottom: '1px solid #f0f0ea', fontWeight: 500 }}>{row.itemNumber}</td>
+                  <td style={{ padding: '6px 10px', borderBottom: '1px solid #f0f0ea' }}>{row.totalOrders}</td>
+                  <td style={{ padding: '6px 10px', borderBottom: '1px solid #f0f0ea', color: row.boOrders > 0 ? '#A32D2D' : '#1a1a1a', fontWeight: row.boOrders > 0 ? 600 : 400 }}>{row.boOrders}</td>
+                  <td style={{ padding: '6px 10px', borderBottom: '1px solid #f0f0ea' }}>
                     {row.totalOrders > 0 ? `${Math.round(row.boOrders / row.totalOrders * 100)}%` : '0%'}
                   </td>
-                  <td style={{ padding: '6px 10px', borderBottom: '0.5px solid #f0f0ea' }}>${Math.round(row.totalUSD).toLocaleString()}</td>
-                  <td style={{ padding: '6px 10px', borderBottom: '0.5px solid #f0f0ea', color: row.boUSD > 0 ? '#A32D2D' : '#1a1a1a' }}>${Math.round(row.boUSD).toLocaleString()}</td>
+                  <td style={{ padding: '6px 10px', borderBottom: '1px solid #f0f0ea' }}>${Math.round(row.totalUSD).toLocaleString()}</td>
+                  <td style={{ padding: '6px 10px', borderBottom: '1px solid #f0f0ea', color: row.boUSD > 0 ? '#A32D2D' : '#1a1a1a' }}>${Math.round(row.boUSD).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

@@ -3,7 +3,7 @@ import { Badge, ExportButton, PageWrapper, LoadingState, EmptyState, fmtDate } f
 import * as XLSX from 'xlsx'
 
 const STATUS_OPTIONS = [
-  { value: '', label: '—', bg: 'transparent', color: '#888', border: '#ddd' },
+  { value: '', label: '—', bg: 'transparent', color: 'var(--text-muted)', border: '#ddd' },
   { value: 'בטיפול', label: 'בטיפול', bg: '#FFF3CD', color: '#856404', border: '#FFCA2C' },
   { value: 'טופל', label: 'טופל ✓', bg: '#D1E7DD', color: '#0A3622', border: '#75B798' },
   { value: 'הטסה', label: 'הטסה ✈', bg: '#E6F1FB', color: '#185FA5', border: '#378ADD' },
@@ -48,23 +48,23 @@ function InfoTh({ label, info }) {
   }
 
   return (
-    <th style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0', zIndex:10 }}>
+    <th style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'var(--bg-page)', zIndex:10 }}>
       <div style={{ display:'flex', alignItems:'center', gap:3 }}>
         <span>{label}</span>
         <div style={{ position:'relative' }}>
           <button
             ref={btnRef}
             onClick={handleClick}
-            style={{ width:13, height:13, borderRadius:'50%', border:'1px solid #aaa', background:'transparent', color:'#aaa', fontSize:8, cursor:'pointer', fontWeight:700, padding:0, lineHeight:'11px', flexShrink:0 }}>
+            style={{ width:13, height:13, borderRadius:'50%', border:'1px solid #aaa', background:'transparent', color:'var(--text-hint)', fontSize:8, cursor:'pointer', fontWeight:700, padding:0, lineHeight:'11px', flexShrink:0 }}>
             i
           </button>
           {show && (
             <div
               onClick={e => e.stopPropagation()}
-              style={{ position:'fixed', top: pos.top, left: pos.left, background:'#1a1a1a', color:'#fff', fontSize:12, padding:'12px 14px', borderRadius:8, width:260, zIndex:9999, lineHeight:1.7, textAlign:'right', boxShadow:'0 4px 20px rgba(0,0,0,0.35)', direction:'rtl', whiteSpace:'normal', wordBreak:'break-word' }}>
+              style={{ position:'fixed', top: pos.top, left: pos.left, background:'var(--bg-page)', color:'#fff', fontSize:12, padding:'12px 14px', borderRadius:8, width:260, zIndex:9999, lineHeight:1.7, textAlign:'right', boxShadow:'0 4px 20px rgba(0,0,0,0.35)', direction:'rtl', whiteSpace:'normal', wordBreak:'break-word' }}>
               <div style={{ fontWeight:600, marginBottom:6, color:'#78b8f0' }}>{label}</div>
               {info}
-              <button onClick={() => setShow(false)} style={{ display:'block', marginTop:10, fontSize:11, color:'#aaa', background:'none', border:'none', cursor:'pointer', padding:0 }}>סגור ✕</button>
+              <button onClick={() => setShow(false)} style={{ display:'block', marginTop:10, fontSize:11, color:'var(--text-hint)', background:'none', border:'none', cursor:'pointer', padding:0 }}>סגור ✕</button>
             </div>
           )}
         </div>
@@ -181,37 +181,37 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
 
   return (
     <PageWrapper title='מבט רכש — חוסרים לפי מק"ט' topActions={
-      <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'0.5px solid #378ADD', borderRadius:6, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ ייצוא Excel</button>
+      <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'1px solid #378ADD', borderRadius:6, background:'transparent', color:'var(--blue)', cursor:'pointer' }}>⬇ ייצוא Excel</button>
     }>
       {/* Filters */}
       <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap', alignItems:'center' }}>
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder='חיפוש מק"ט / תיאור / לקוח...'
-          style={{ fontSize:12, padding:'5px 10px', border:'0.5px solid #ddd', borderRadius:6, width:220, background:'#fff', color:'#1a1a1a' }} />
+          style={{ fontSize:12, padding:'5px 10px', border:'1px solid var(--border-light)', borderRadius:6, width:220, background:'var(--bg-card)', color:'var(--text-main)' }} />
         {['הכל','BO','בסכנה','תקין'].map(o => (
           <button key={o} onClick={() => setFilterStatus(o)} style={{
             fontSize:12, padding:'4px 10px', borderRadius:6, cursor:'pointer',
-            border:'0.5px solid '+(filterStatus===o?'#378ADD':'#ddd'),
+            border:'1px solid '+(filterStatus===o?'#378ADD':'#ddd'),
             background:filterStatus===o?'#378ADD':'transparent',
             color:filterStatus===o?'#fff':'#555',
           }}>{o}</button>
         ))}
         <select value={filterTreatment} onChange={e => setFilterTreatment(e.target.value)}
-          style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
+          style={{ fontSize:12, padding:'5px 8px', border:'1px solid var(--border-light)', borderRadius:6, background:'var(--bg-card)', color:'var(--text-main)' }}>
           {['הכל','טופל','בטיפול','הטסה','לא טופל'].map(o => <option key={o}>{o}</option>)}
         </select>
         <select value={filterBuyer} onChange={e => setFilterBuyer(e.target.value)}
-          style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
+          style={{ fontSize:12, padding:'5px 8px', border:'1px solid var(--border-light)', borderRadius:6, background:'var(--bg-card)', color:'var(--text-main)' }}>
           {buyerGroups.map(o => <option key={o}>{o}</option>)}
         </select>
-        <span style={{ fontSize:11, color:'#999', marginRight:'auto' }}>{filtered.length} מק"טים</span>
+        <span style={{ fontSize:11, color:'var(--text-hint)', marginRight:'auto' }}>{filtered.length} מק"טים</span>
       </div>
 
       {/* Table */}
-      <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 320px)' }}>
+      <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:10, overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 320px)' }}>
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
-            <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
+            <tr style={{ background:'var(--bg-page)', position:'sticky', top:0, zIndex:10 }}>
               {COLUMN_INFO.map(({ label, info }) => (
                 <InfoTh key={label} label={label} info={info} />
               ))}
@@ -227,70 +227,70 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
 
               return (
               <React.Fragment key={i}>
-                <tr style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : treatment==='הטסה' ? '#E6F1FB33' : row.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
+                <tr style={{ background: treatment==='טופל' ? '#D1E7DD22' : treatment==='בטיפול' ? '#FFF3CD22' : treatment==='הטסה' ? '#E6F1FB33' : row.isBO ? '#FCEBEB18' : i%2===0?'var(--bg-card)':'var(--bg-row)', cursor:'pointer' }}
                   onClick={() => setExpandedItem(expandedItem===row.itemNumber ? null : row.itemNumber)}>
                   {/* Treatment status */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.preventDefault()}>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }} onClick={e => e.preventDefault()}>
                     <select value={treatment} onChange={e => { e.preventDefault(); saveNote(row.itemNumber, 'treatment_status', e.target.value) }}
                       style={{ fontSize:10, padding:'2px 5px', border:`0.5px solid ${statusOpt.border}`, borderRadius:4, background:statusOpt.bg, color:statusOpt.color, cursor:'pointer' }}>
                       {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                   </td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>{row.itemNumber}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.productName||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={row.procurementStatus} /></td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555', whiteSpace:'nowrap' }}>{prdVal||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{row.orders?.[0]?.lineNumber||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap', color: row.orders?.[0]?.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>{fmtDate(row.orders?.[0]?.confirmedShipDate)||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.boOrdersCount>0?'#A32D2D':'#1a1a1a', fontWeight:row.boOrdersCount>0?600:400 }}>{row.boOrdersCount}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.affectedOrdersCount}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{row.totalQtyRequired}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalQtyPicked}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalOnOrder}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{row.totalAvailable}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{row.shortage}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
-                    {!row.hasPO ? <span style={{ color:'#A32D2D' }}>❌</span> : firstPO(row).purchaseOrder || '—'}
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, whiteSpace:'nowrap' }}>{row.itemNumber}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.productName||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }}><Badge status={row.procurementStatus} /></td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:10, color:'var(--text-sub)', whiteSpace:'nowrap' }}>{prdVal||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11 }}>{row.orders?.[0]?.lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11, whiteSpace:'nowrap', color: row.orders?.[0]?.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>{fmtDate(row.orders?.[0]?.confirmedShipDate)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', color:row.boOrdersCount>0?'#A32D2D':'#1a1a1a', fontWeight:row.boOrdersCount>0?600:400 }}>{row.boOrdersCount}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{row.affectedOrdersCount}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{row.totalQtyRequired}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{row.totalQtyPicked}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{row.totalOnOrder}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{row.totalAvailable}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', color:row.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{row.shortage}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11, whiteSpace:'nowrap' }}>
+                    {!row.hasPO ? <span style={{ color:'var(--red-dark)' }}>❌</span> : firstPO(row).purchaseOrder || '—'}
                   </td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.vendors?.join(', ')||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(row.confirmedReceiptDate)||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.vendors?.join(', ')||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(row.confirmedReceiptDate)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                      {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                      {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
-                      <button onClick={() => setEditingRow(row)} style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'0.5px solid #ddd', background:'#f4f4f0', color:'#555', cursor:'pointer' }}>✏️</button>
+                      {n.note_procurement && <span style={{ fontSize:9, background:'var(--blue-bg)', color:'var(--blue-dark)', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                      {n.note_tapi && <span style={{ fontSize:9, background:'var(--green-bg)', color:'var(--green-dark)', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                      <button onClick={() => setEditingRow(row)} style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'1px solid var(--border-light)', background:'var(--bg-page)', color:'var(--text-sub)', cursor:'pointer' }}>✏️</button>
                     </div>
                   </td>
                 </tr>
                 {expandedItem === row.itemNumber && (
                   <React.Fragment key={`exp-${i}`}>
                     <tr>
-                      <td colSpan={21} style={{ padding:0, borderBottom:'0.5px solid #e5e5e0' }}>
+                      <td colSpan={21} style={{ padding:0, borderBottom:'1px solid var(--border-card)' }}>
                         <div style={{ padding:'10px 14px', background:'#f8f8f6', direction:'rtl' }}>
-                          <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:600, color:'var(--text-sub)', marginBottom:6 }}>
                             הזמנות רכש פתוחות — {row.itemNumber} ({row.purchaseOrders?.length||0})
                           </div>
                           {!row.hasPO
-                            ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש פתוחות</div>
+                            ? <div style={{ fontSize:11, color:'var(--red-dark)' }}>❌ אין הזמנות רכש פתוחות</div>
                             : <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
                                 <thead><tr>{['הז. רכש','שורה','מסלול','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','סטטוס'].map(h=>(
-                                  <th key={h} style={{ background:'#f0f0ec', padding:'4px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                  <th key={h} style={{ background:'var(--bg-neutral)', padding:'4px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                                 ))}</tr></thead>
                                 <tbody>{row.purchaseOrders?.map((po,j)=>(
-                                  <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.buyerGroup||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10 }}>{po.approvalStatus||'—'}</td>
+                                  <tr key={j} style={{ background:j%2===0?'var(--bg-card)':'var(--bg-row)' }}>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.lineNumber||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.buyerGroup||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.quantity||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:10 }}>{po.approvalStatus||'—'}</td>
                                   </tr>
                                 ))}</tbody>
                               </table>
@@ -305,7 +305,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
             })}
           </tbody>
         </table>
-        {filtered.length === 0 && <div style={{ padding:30, textAlign:'center', color:'#aaa' }}>אין נתונים</div>}
+        {filtered.length === 0 && <div style={{ padding:30, textAlign:'center', color:'var(--text-hint)' }}>אין נתונים</div>}
       </div>
 
       {/* Notes Modal */}
@@ -344,16 +344,16 @@ function NotesModal({ row, notes, onSave, onClose }) {
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
+      <div style={{ background:'var(--bg-card)', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
         onClick={e => e.stopPropagation()}>
         
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
-            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{row.productName}</div>
+            <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{row.productName}</div>
           </div>
-          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'#888', lineHeight:1 }}>✕</button>
+          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', lineHeight:1 }}>✕</button>
         </div>
 
         {/* Note fields */}
@@ -379,11 +379,11 @@ function NotesModal({ row, notes, onSave, onClose }) {
           }}>{saving ? 'שומר...' : '💾 שמור'}</button>
           <button onClick={handleClear} style={{
             fontSize:13, padding:'8px 16px', borderRadius:7,
-            border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer'
+            border:'1px solid #E24B4A', background:'transparent', color:'var(--red-mid)', cursor:'pointer'
           }}>🗑 מחק הערות</button>
           <button onClick={onClose} style={{
             fontSize:13, padding:'8px 16px', borderRadius:7,
-            border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer'
+            border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-sub)', cursor:'pointer'
           }}>ביטול</button>
         </div>
       </div>
@@ -427,16 +427,16 @@ function NoteField({ label, value, onChange, color }) {
             { label:'U', title:'קו תחתי', prefix:'__', suffix:'__', style:{ textDecoration:'underline' } },
           ].map(btn => (
             <button key={btn.label} title={btn.title} onClick={() => insertFormat(btn.prefix, btn.suffix)}
-              style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer', ...btn.style }}>
+              style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer', ...btn.style }}>
               {btn.label}
             </button>
           ))}
           <button title='רשימה' onClick={insertList}
-            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
+            style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer' }}>
             •
           </button>
           <button title='מספור' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n1. ' : '1. ')); setTimeout(()=>ref.current?.focus(),0) }}
-            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
+            style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer' }}>
             1.
           </button>
         </div>
@@ -449,7 +449,7 @@ function NoteField({ label, value, onChange, color }) {
         style={{
           width:'100%', height:120, fontSize:13, padding:'10px 12px',
           border:`1px solid ${color}40`, borderRadius:8, resize:'vertical',
-          background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6,
+          background:'var(--bg-row)', color:'var(--text-main)', lineHeight:1.6,
           fontFamily:'inherit', direction:'rtl', textAlign:'right',
           outline:'none', boxSizing:'border-box',
         }}

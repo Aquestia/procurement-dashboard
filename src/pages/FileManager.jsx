@@ -103,43 +103,43 @@ export default function FileManager({ activeFile, onFileChange }) {
   return (
     <PageWrapper title='ניהול קבצים'>
       <div style={{
-        background: '#fff', border: `2px dashed ${uploading ? '#378ADD' : '#ddd'}`,
+        background: 'var(--bg-card)', border: `2px dashed ${uploading ? '#378ADD' : '#ddd'}`,
         borderRadius: 10, padding: 30, textAlign: 'center', marginBottom: 20,
         cursor: uploading ? 'wait' : 'pointer', transition: 'border-color .2s',
       }} onClick={() => !uploading && fileRef.current.click()}>
         <input ref={fileRef} type='file' accept='.xlsx,.xls' style={{ display: 'none' }} onChange={handleUpload} />
         <div style={{ fontSize: 32, marginBottom: 8 }}>{uploading ? '⏳' : '📤'}</div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', marginBottom: 4 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)', marginBottom: 4 }}>
           {uploading ? progress : 'לחץ להעלאת קובץ Excel'}
         </div>
-        <div style={{ fontSize: 12, color: '#888' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
           {uploading ? 'העיבוד רץ ברקע — הדף לא יקפא' : 'קבצי XLSX בלבד — הקובץ יהפוך לפעיל אוטומטית'}
         </div>
         {error && <div style={{ fontSize: 12, color: '#A32D2D', marginTop: 8, fontWeight: 500 }}>{error}</div>}
         {uploading && (
-          <div style={{ marginTop: 14, height: 4, background: '#f0f0ea', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ marginTop: 14, height: 4, background: 'var(--bg-neutral)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{ height: '100%', background: '#378ADD', borderRadius: 2, animation: 'slide 1.5s infinite', width: '40%' }} />
           </div>
         )}
       </div>
 
-      <div style={{ background: '#fff', border: '0.5px solid #e5e5e0', borderRadius: 10, overflow: 'hidden' }}>
-        <div style={{ padding: '10px 14px', borderBottom: '0.5px solid #e5e5e0', fontSize: 13, fontWeight: 600 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid #e5e5e0', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ padding: '10px 14px', borderBottom: '1px solid #e5e5e0', fontSize: 13, fontWeight: 600 }}>
           קבצים שהועלו ({files.length})
         </div>
         {files.length === 0 && (
-          <div style={{ padding: 30, textAlign: 'center', color: '#aaa', fontSize: 13 }}>אין קבצים עדיין</div>
+          <div style={{ padding: 30, textAlign: 'center', color: 'var(--text-hint)', fontSize: 13 }}>אין קבצים עדיין</div>
         )}
         {files.map(f => (
           <div key={f.id} style={{
             display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
-            borderBottom: '0.5px solid #f0f0ea',
+            borderBottom: '1px solid #f0f0ea',
             background: f.is_active ? '#f0f6ff' : '#fff',
           }}>
             <div style={{ fontSize: 20 }}>📄</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{f.filename}</div>
-              <div style={{ fontSize: 11, color: '#888' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>{f.filename}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 {new Date(f.uploaded_at).toLocaleString('he-IL')} · {f.row_count?.toLocaleString()} מק"טים
               </div>
             </div>
@@ -148,12 +148,12 @@ export default function FileManager({ activeFile, onFileChange }) {
             )}
             {!f.is_active && (
               <button onClick={() => setActive(f.id)} style={{
-                fontSize: 12, padding: '4px 10px', border: '0.5px solid #378ADD',
-                borderRadius: 6, background: 'transparent', color: '#378ADD', cursor: 'pointer'
+                fontSize: 12, padding: '4px 10px', border: '1px solid #378ADD',
+                borderRadius: 6, background: 'transparent', color: 'var(--blue)', cursor: 'pointer'
               }}>הפעל</button>
             )}
             <button onClick={() => deleteFile(f.id)} style={{
-              fontSize: 12, padding: '4px 10px', border: '0.5px solid #ddd',
+              fontSize: 12, padding: '4px 10px', border: '1px solid var(--border-light)',
               borderRadius: 6, background: 'transparent', color: '#A32D2D', cursor: 'pointer'
             }}>מחק</button>
           </div>

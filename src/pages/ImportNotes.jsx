@@ -123,8 +123,8 @@ export default function ImportNotes({ onDone }) {
 
   return (
     <div style={{ padding: 32, maxWidth: 640, margin: '0 auto', direction: 'rtl', fontFamily: 'sans-serif' }}>
-      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: '#1a1a1a' }}>📥 ייבוא הערות מאקסל</h2>
-      <p style={{ fontSize: 13, color: '#666', marginBottom: 24 }}>
+      <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: 'var(--text-main)' }}>📥 ייבוא הערות מאקסל</h2>
+      <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>
         העלה קובץ Excel עם עמודות: <strong>Item number</strong>, <strong>הערת רכש</strong>, <strong>הערת תפ"י</strong>.<br />
         אם מק"ט מופיע כמה פעמים — ההערות ישורשרו אוטומטית.
       </p>
@@ -161,16 +161,16 @@ export default function ImportNotes({ onDone }) {
         }}>
           <div style={{ background: '#EAF4FF', borderRadius: 8, padding: '12px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: '#185FA5' }}>{stats.updated}</div>
-            <div style={{ fontSize: 12, color: '#555' }}>עודכנו</div>
+            <div style={{ fontSize: 12, color: 'var(--text-sub)' }}>עודכנו</div>
           </div>
           <div style={{ background: '#EAFAF1', borderRadius: 8, padding: '12px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: 22, fontWeight: 700, color: '#1A7A4A' }}>{stats.inserted}</div>
-            <div style={{ fontSize: 12, color: '#555' }}>נוספו חדשים</div>
+            <div style={{ fontSize: 12, color: 'var(--text-sub)' }}>נוספו חדשים</div>
           </div>
           {stats.errors > 0 && (
             <div style={{ background: '#FCEBEB', borderRadius: 8, padding: '12px 20px', textAlign: 'center' }}>
               <div style={{ fontSize: 22, fontWeight: 700, color: '#A32D2D' }}>{stats.errors}</div>
-              <div style={{ fontSize: 12, color: '#555' }}>שגיאות</div>
+              <div style={{ fontSize: 12, color: 'var(--text-sub)' }}>שגיאות</div>
             </div>
           )}
         </div>
@@ -181,7 +181,7 @@ export default function ImportNotes({ onDone }) {
           <button
             onClick={() => { setStatus('idle'); setLog([]); setStats(null) }}
             style={{
-              padding: '8px 16px', background: '#f0f0ec', border: '1px solid #ddd',
+              padding: '8px 16px', background: 'var(--bg-neutral)', border: '1px solid var(--border-light)',
               borderRadius: 6, cursor: 'pointer', fontSize: 13
             }}
           >

@@ -132,54 +132,54 @@ export default function AdminPinGate({ onUnlock, children }) {
 
   return (
     <div style={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'60vh' }}>
-      <div style={{ background:'#fff', border:'1px solid #e5e5e0', borderRadius:12, padding:'32px 36px', width:320, boxShadow:'0 4px 20px #0001', textAlign:'center', direction:'rtl' }}>
+      <div style={{ background:'var(--bg-card)', border:'1px solid #e5e5e0', borderRadius:12, padding:'32px 36px', width:320, boxShadow:'0 4px 20px #0001', textAlign:'center', direction:'rtl' }}>
         <div style={{ fontSize:28, marginBottom:8 }}>🔒</div>
         <div style={{ fontSize:15, fontWeight:600, marginBottom:4 }}>
           {mode==='pin' ? 'אזור מוגן' : mode==='forgot' ? 'שחזור PIN' : mode==='reset' ? 'הזן קוד ואפס PIN' : 'שנה PIN'}
         </div>
-        <div style={{ fontSize:12, color:'#888', marginBottom:20 }}>
+        <div style={{ fontSize:12, color:'var(--text-muted)', marginBottom:20 }}>
           {mode==='pin' ? 'הכנס PIN כדי להמשיך' : mode==='forgot' ? 'קוד שחזור יישלח למייל' : mode==='reset' ? 'הזן את הקוד שקיבלת במייל' : 'הזן PIN חדש'}
         </div>
 
-        {msg && <div style={{ fontSize:12, color:'#3B6D11', background:'#EAFAF1', borderRadius:6, padding:'6px 10px', marginBottom:12 }}>{msg}</div>}
-        {err && <div style={{ fontSize:12, color:'#A32D2D', background:'#FCEBEB', borderRadius:6, padding:'6px 10px', marginBottom:12 }}>{err}</div>}
+        {msg && <div style={{ fontSize:12, color:'var(--green-dark)', background:'#EAFAF1', borderRadius:6, padding:'6px 10px', marginBottom:12 }}>{msg}</div>}
+        {err && <div style={{ fontSize:12, color:'var(--red-dark)', background:'var(--red-bg)', borderRadius:6, padding:'6px 10px', marginBottom:12 }}>{err}</div>}
 
         {mode==='pin' && (<>
           <input type="password" value={pin} onChange={e=>setPin(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handlePinSubmit()}
             placeholder="הכנס PIN" maxLength={8}
-            style={{ width:'100%', padding:'10px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:18, textAlign:'center', letterSpacing:6, marginBottom:12, boxSizing:'border-box' }} />
+            style={{ width:'100%', padding:'10px 12px', border:'1px solid var(--border-light)', borderRadius:8, fontSize:18, textAlign:'center', letterSpacing:6, marginBottom:12, boxSizing:'border-box' }} />
           <button onClick={handlePinSubmit} disabled={loading}
             style={{ width:'100%', padding:'10px', background:'#378ADD', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:600, cursor:'pointer', marginBottom:8 }}>
             {loading ? 'בודק...' : 'כניסה'}
           </button>
           <button onClick={()=>{setMode('forgot');setErr(null);setMsg(null)}}
-            style={{ fontSize:11, color:'#378ADD', background:'none', border:'none', cursor:'pointer' }}>שכחתי PIN</button>
+            style={{ fontSize:11, color:'var(--blue)', background:'none', border:'none', cursor:'pointer' }}>שכחתי PIN</button>
         </>)}
 
         {mode==='forgot' && (<>
-          <div style={{ fontSize:12, color:'#555', marginBottom:16 }}>קוד שחזור ישלח אל:<br/><strong>shai.shamai10@gmail.com</strong></div>
+          <div style={{ fontSize:12, color:'var(--text-sub)', marginBottom:16 }}>קוד שחזור ישלח אל:<br/><strong>shai.shamai10@gmail.com</strong></div>
           <button onClick={handleForgot} disabled={loading}
             style={{ width:'100%', padding:'10px', background:'#378ADD', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:600, cursor:'pointer', marginBottom:8 }}>
             {loading ? 'שולח...' : 'שלח קוד לאימייל'}
           </button>
           <button onClick={()=>{setMode('pin');setErr(null);setMsg(null)}}
-            style={{ fontSize:11, color:'#888', background:'none', border:'none', cursor:'pointer' }}>חזרה</button>
+            style={{ fontSize:11, color:'var(--text-muted)', background:'none', border:'none', cursor:'pointer' }}>חזרה</button>
         </>)}
 
         {mode==='reset' && (<>
           <input value={inputToken} onChange={e=>setInputToken(e.target.value.toUpperCase())}
             placeholder="קוד מהמייל" maxLength={8}
-            style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:14, textAlign:'center', letterSpacing:4, marginBottom:8, boxSizing:'border-box' }} />
+            style={{ width:'100%', padding:'8px 12px', border:'1px solid var(--border-light)', borderRadius:8, fontSize:14, textAlign:'center', letterSpacing:4, marginBottom:8, boxSizing:'border-box' }} />
           <input type="password" value={newPin} onChange={e=>setNewPin(e.target.value)} placeholder="PIN חדש" maxLength={8}
-            style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:14, textAlign:'center', letterSpacing:4, marginBottom:8, boxSizing:'border-box' }} />
+            style={{ width:'100%', padding:'8px 12px', border:'1px solid var(--border-light)', borderRadius:8, fontSize:14, textAlign:'center', letterSpacing:4, marginBottom:8, boxSizing:'border-box' }} />
           <input type="password" value={confirmPin} onChange={e=>setConfirmPin(e.target.value)} placeholder="אמת PIN" maxLength={8}
-            style={{ width:'100%', padding:'8px 12px', border:'1px solid #ddd', borderRadius:8, fontSize:14, textAlign:'center', letterSpacing:4, marginBottom:12, boxSizing:'border-box' }} />
+            style={{ width:'100%', padding:'8px 12px', border:'1px solid var(--border-light)', borderRadius:8, fontSize:14, textAlign:'center', letterSpacing:4, marginBottom:12, boxSizing:'border-box' }} />
           <button onClick={handleReset} disabled={loading}
             style={{ width:'100%', padding:'10px', background:'#378ADD', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:600, cursor:'pointer', marginBottom:8 }}>
             {loading ? 'מאפס...' : 'אפס PIN'}
           </button>
           <button onClick={()=>{setMode('pin');setErr(null);setMsg(null)}}
-            style={{ fontSize:11, color:'#888', background:'none', border:'none', cursor:'pointer' }}>חזרה</button>
+            style={{ fontSize:11, color:'var(--text-muted)', background:'none', border:'none', cursor:'pointer' }}>חזרה</button>
         </>)}
       </div>
     </div>
@@ -214,19 +214,19 @@ export function ChangePinPanel({ onClose }) {
   return (
     <div style={{ background:'#f8f8f6', border:'1px solid #e5e5e0', borderRadius:10, padding:16, maxWidth:280, direction:'rtl' }}>
       <div style={{ fontSize:13, fontWeight:600, marginBottom:12 }}>🔑 שנה PIN</div>
-      {msg && <div style={{ fontSize:12, color:'#3B6D11', marginBottom:8 }}>{msg}</div>}
-      {err && <div style={{ fontSize:12, color:'#A32D2D', marginBottom:8 }}>{err}</div>}
+      {msg && <div style={{ fontSize:12, color:'var(--green-dark)', marginBottom:8 }}>{msg}</div>}
+      {err && <div style={{ fontSize:12, color:'var(--red-dark)', marginBottom:8 }}>{err}</div>}
       <input type="password" value={newPin} onChange={e=>setNewPin(e.target.value)} placeholder="PIN חדש" maxLength={8}
-        style={{ width:'100%', padding:'7px 10px', border:'1px solid #ddd', borderRadius:6, fontSize:13, marginBottom:6, boxSizing:'border-box' }} />
+        style={{ width:'100%', padding:'7px 10px', border:'1px solid var(--border-light)', borderRadius:6, fontSize:13, marginBottom:6, boxSizing:'border-box' }} />
       <input type="password" value={confirmPin} onChange={e=>setConfirmPin(e.target.value)} placeholder="אמת PIN חדש" maxLength={8}
-        style={{ width:'100%', padding:'7px 10px', border:'1px solid #ddd', borderRadius:6, fontSize:13, marginBottom:10, boxSizing:'border-box' }} />
+        style={{ width:'100%', padding:'7px 10px', border:'1px solid var(--border-light)', borderRadius:6, fontSize:13, marginBottom:10, boxSizing:'border-box' }} />
       <div style={{ display:'flex', gap:8 }}>
         <button onClick={handleChange} disabled={loading}
           style={{ flex:1, padding:'7px', background:'#378ADD', color:'#fff', border:'none', borderRadius:6, fontSize:12, fontWeight:600, cursor:'pointer' }}>
           {loading ? 'שומר...' : 'שמור'}
         </button>
         {onClose && <button onClick={onClose}
-          style={{ padding:'7px 12px', background:'transparent', border:'1px solid #ddd', borderRadius:6, fontSize:12, cursor:'pointer', color:'#888' }}>ביטול</button>}
+          style={{ padding:'7px 12px', background:'transparent', border:'1px solid var(--border-light)', borderRadius:6, fontSize:12, cursor:'pointer', color:'var(--text-muted)' }}>ביטול</button>}
       </div>
     </div>
   )

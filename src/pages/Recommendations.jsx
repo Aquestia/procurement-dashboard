@@ -224,7 +224,7 @@ function KpiCard({ id, label, value, sub, color, bg, border, info, isOpen, onCli
     <div
       onClick={onClick}
       style={{
-        background: isOpen ? bg : '#f4f4f0',
+        background: isOpen ? bg : 'var(--bg-neutral)',
         borderRadius: 8, padding:'10px 12px', cursor:'pointer',
         border: isOpen ? `1.5px solid ${border}` : '1px solid transparent',
         position:'relative', transition:'all 0.15s',
@@ -234,22 +234,22 @@ function KpiCard({ id, label, value, sub, color, bg, border, info, isOpen, onCli
       <div style={{ position:'absolute', top:6, left:8 }}>
         <button
           onClick={e => { e.stopPropagation(); setShowInfo(s => !s) }}
-          style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'#888', fontSize:10, cursor:'pointer', fontWeight:600, padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}
+          style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'var(--text-muted)', fontSize:10, cursor:'pointer', fontWeight:600, padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}
         >i</button>
         {showInfo && (
           <div
             onClick={e => e.stopPropagation()}
-            style={{ position:'absolute', bottom:20, left:0, background:'#333', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.6, textAlign:'right' }}
+            style={{ position:'absolute', bottom:20, left:0, background:'var(--bg-neutral)', color:'var(--text-main)', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.6, textAlign:'right' }}
           >
             {info}
           </div>
         )}
       </div>
 
-      <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{label}</div>
+      <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:4 }}>{label}</div>
       <div style={{ fontSize:22, fontWeight:600, color, lineHeight:1 }}>{value}</div>
-      {sub && <div style={{ fontSize:10, color:'#999', marginTop:3 }}>{sub}</div>}
-      <div style={{ fontSize:10, color:'#378ADD', marginTop:4 }}>{isOpen ? '▲ סגור' : '▼ הצג רשימה'}</div>
+      {sub && <div style={{ fontSize:10, color:'var(--text-hint)', marginTop:3 }}>{sub}</div>}
+      <div style={{ fontSize:10, color:'var(--blue)', marginTop:4 }}>{isOpen ? '▲ סגור' : '▼ הצג רשימה'}</div>
     </div>
   )
 }
@@ -262,24 +262,24 @@ function DrillDown({ card, onClose }) {
   }
 
   return (
-    <div style={{ background:'#fff', border:`1.5px solid ${card.border}`, borderRadius:10, padding:16 }}>
+    <div style={{ background:'var(--bg-card)', border:`1.5px solid ${card.border}`, borderRadius:10, padding:16 }}>
       {/* Header */}
       <div style={{ display:'flex', alignItems:'center', marginBottom:12, gap:10 }}>
         <div style={{ flex:1 }}>
           <span style={{ fontSize:14, fontWeight:600, color: card.color }}>{card.label}</span>
-          <span style={{ fontSize:12, color:'#888', marginRight:8 }}>— {card.items.length} מק"טים</span>
+          <span style={{ fontSize:12, color:'var(--text-muted)', marginRight:8 }}>— {card.items.length} מק"טים</span>
         </div>
         <button onClick={handleExport} style={{ fontSize:11, padding:'4px 12px', border:`0.5px solid ${card.color}`, borderRadius:6, background:'transparent', color:card.color, cursor:'pointer' }}>⬇ ייצוא Excel</button>
-        <button onClick={onClose} style={{ fontSize:12, padding:'3px 10px', border:'0.5px solid #ddd', borderRadius:6, background:'transparent', color:'#888', cursor:'pointer' }}>✕ סגור</button>
+        <button onClick={onClose} style={{ fontSize:12, padding:'3px 10px', border:'1px solid var(--border-light)', borderRadius:6, background:'transparent', color:'var(--text-muted)', cursor:'pointer' }}>✕ סגור</button>
       </div>
 
       {/* Table */}
-      <div style={{ overflowX:'auto', maxHeight:480, overflowY:'auto', border:'0.5px solid #e5e5e0', borderRadius:8 }}>
+      <div style={{ overflowX:'auto', maxHeight:480, overflowY:'auto', border:'1px solid var(--border-card)', borderRadius:8 }}>
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:11 }}>
           <thead>
-            <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:5 }}>
+            <tr style={{ background:'var(--bg-page)', position:'sticky', top:0, zIndex:5 }}>
               {['BO','מק"ט','תיאור','פק"ע','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','קב. רכש','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','הפרש ימים'].map(h => (
-                <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -293,30 +293,30 @@ function DrillDown({ card, onClose }) {
                 const diff = diffDays(o.confirmedShipDate, po.confirmedReceiptDate)
                 const diffColor = diff === null ? '#888' : diff < 0 ? '#A32D2D' : diff <= 7 ? '#854F0B' : '#3B6D11'
                 return (
-                  <tr key={`${i}-${j}`} style={{ background: r.isBO ? '#FCEBEB10' : i%2===0?'#fff':'#fafaf8' }}>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', textAlign:'center' }}>
-                      {r.isBO && <span style={{ fontSize:10, fontWeight:700, color:'#A32D2D' }}>BO</span>}
+                  <tr key={`${i}-${j}`} style={{ background: r.isBO ? 'var(--red-bg)' : i%2===0?'var(--bg-card)':'var(--bg-row)' }}>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', textAlign:'center' }}>
+                      {r.isBO && <span style={{ fontSize:10, fontWeight:700, color:'var(--red-dark)' }}>BO</span>}
                     </td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>{r.itemNumber}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.productName||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={r.procurementStatus} /></td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||r.prd||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{r.totalQtyRequired}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', color:r.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{r.shortage}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.buyerGroup||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
-                    <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, color:diffColor, whiteSpace:'nowrap' }}>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, whiteSpace:'nowrap' }}>{r.itemNumber}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.productName||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}><Badge status={r.procurementStatus} /></td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{o.salesOrder||r.prd||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{o.lineNumber||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{r.totalQtyRequired}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', color:r.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{r.shortage}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.lineNumber||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.buyerGroup||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
+                    <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, color:diffColor, whiteSpace:'nowrap' }}>
                       {diff === null ? '—' : diff < 0 ? `${Math.abs(diff)}- ימים` : `${diff} ימים`}
                     </td>
                   </tr>
@@ -325,7 +325,7 @@ function DrillDown({ card, onClose }) {
             })}
           </tbody>
         </table>
-        {card.items.length === 0 && <div style={{ padding:30, textAlign:'center', color:'#aaa' }}>אין נתונים</div>}
+        {card.items.length === 0 && <div style={{ padding:30, textAlign:'center', color:'var(--text-hint)' }}>אין נתונים</div>}
       </div>
     </div>
   )
