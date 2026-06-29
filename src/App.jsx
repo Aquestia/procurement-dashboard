@@ -79,9 +79,11 @@ export default function App() {
     const existing = notes[itemNumber] || {}
     const fields = field === 'both' ? value : { [field]: value }
     const toSave = {
-      note_procurement: existing.note_procurement || '',
-      note_tapi: existing.note_tapi || '',
-      treatment_status: existing.treatment_status || '',
+      note_procurement:  existing.note_procurement  || '',
+      note_tapi:         existing.note_tapi         || '',
+      treatment_status:  existing.treatment_status  || '',
+      air_status:        existing.air_status        || '',
+      air_note:          existing.air_note          || '',
       ...fields,
     }
     const localUpdated = { ...existing, ...toSave, item_number: itemNumber, sales_order: '', line_number: '' }

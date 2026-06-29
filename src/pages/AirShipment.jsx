@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { Badge, fmtDate } from '../components/shared'
 import * as XLSX from 'xlsx'
 
@@ -18,6 +18,11 @@ function AirStatusCell({ itemNumber, airStatus, airNote, onSave }) {
   const [note, setNote]     = useState(airNote || '')
   const [saved, setSaved]   = useState(false)
   const timer = useRef(null)
+
+  // Sync when external notes load (Supabase async)
+  useEffect(() => { setStatus(airStatus || '') }, [airStatus])
+  useEffect(() => { setNote(airNote || '') },     [airNote])
+
   const opt = AIR_STATUSES.find(s => s.value === status) || AIR_STATUSES[0]
 
   function handleStatus(e) {
