@@ -288,7 +288,14 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
       hasPO, totalOrdered, hasNoDate, vendors,
       confirmedReceiptDate: nextReceipt?.confirmedReceiptDate || null,
       purchaseOrders: pos,
-      totalRemainingAmount: item.orders.reduce((s, o) => s + (o.remainingAmount || 0), 0),
+      totalRemainingAmount: (() => {
+        const seen = new Set()
+        return item.orders.reduce((s, o) => {
+          if (!o.slKey || seen.has(o.slKey)) return s
+          seen.add(o.slKey)
+          return s + (o.remainingAmount || 0)
+        }, 0)
+      })(),
     }
   })
 }
