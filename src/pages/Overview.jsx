@@ -239,7 +239,7 @@ export default function Overview({ data, loading, stageSummary, financials, note
           <div style={{ overflowX:'auto', maxHeight:400, overflowY:'auto', border:'1px solid var(--border-card)', borderRadius:8 }}>
             <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:11 }}>
               <thead>
-                <tr style={{ background:'var(--bg-page)', position:'sticky', top:0, zIndex:5 }}>
+                <tr style={{ background:'var(--bg-neutral)', position:'sticky', top:0, zIndex:5 }}>
                   {['הערות','BO','מק"ט','תיאור מוצר','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה'].map(h => (
                     <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                   ))}
@@ -434,7 +434,7 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:1000 }}>
               <thead>
                 <tr>{['הערות','מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע / הזמנה','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
-                  <th key={h} style={{ background:'var(--bg-neutral)', padding:'4px 6px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                  <th key={h} style={{ background:'#F0F0EA', padding:'4px 6px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>

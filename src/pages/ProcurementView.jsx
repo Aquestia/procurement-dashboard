@@ -48,7 +48,7 @@ function InfoTh({ label, info }) {
   }
 
   return (
-    <th style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'var(--bg-page)', zIndex:10 }}>
+    <th style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'var(--bg-neutral)', zIndex:10 }}>
       <div style={{ display:'flex', alignItems:'center', gap:3 }}>
         <span>{label}</span>
         <div style={{ position:'relative' }}>
@@ -61,7 +61,7 @@ function InfoTh({ label, info }) {
           {show && (
             <div
               onClick={e => e.stopPropagation()}
-              style={{ position:'fixed', top: pos.top, left: pos.left, background:'var(--bg-page)', color:'#fff', fontSize:12, padding:'12px 14px', borderRadius:8, width:260, zIndex:9999, lineHeight:1.7, textAlign:'right', boxShadow:'0 4px 20px rgba(0,0,0,0.35)', direction:'rtl', whiteSpace:'normal', wordBreak:'break-word' }}>
+              style={{ position:'fixed', top: pos.top, left: pos.left, background:'#333', color:'#fff', fontSize:12, padding:'12px 14px', borderRadius:8, width:260, zIndex:9999, lineHeight:1.7, textAlign:'right', boxShadow:'0 4px 20px rgba(0,0,0,0.35)', direction:'rtl', whiteSpace:'normal', wordBreak:'break-word' }}>
               <div style={{ fontWeight:600, marginBottom:6, color:'#78b8f0' }}>{label}</div>
               {info}
               <button onClick={() => setShow(false)} style={{ display:'block', marginTop:10, fontSize:11, color:'var(--text-hint)', background:'none', border:'none', cursor:'pointer', padding:0 }}>סגור ✕</button>
@@ -211,7 +211,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
       <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:10, overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 320px)' }}>
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
-            <tr style={{ background:'var(--bg-page)', position:'sticky', top:0, zIndex:10 }}>
+            <tr style={{ background:'var(--bg-neutral)', position:'sticky', top:0, zIndex:10 }}>
               {COLUMN_INFO.map(({ label, info }) => (
                 <InfoTh key={label} label={label} info={info} />
               ))}
@@ -277,7 +277,7 @@ export default function ProcurementView({ data, notes, saveNote, loading }) {
                             ? <div style={{ fontSize:11, color:'var(--red-dark)' }}>❌ אין הזמנות רכש פתוחות</div>
                             : <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
                                 <thead><tr>{['הז. רכש','שורה','מסלול','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','ת. קבלה מבוקש','סטטוס'].map(h=>(
-                                  <th key={h} style={{ background:'var(--bg-neutral)', padding:'4px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                  <th key={h} style={{ background:'#F0F0EA', padding:'4px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                                 ))}</tr></thead>
                                 <tbody>{row.purchaseOrders?.map((po,j)=>(
                                   <tr key={j} style={{ background:j%2===0?'var(--bg-card)':'var(--bg-row)' }}>

@@ -98,7 +98,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
           { label:'ללא תאריך רכש', value:kpis.noDate, amt:kpis.noDateAmt, color:'var(--amber-dark)', info:'יש הזמנת רכש אך ללא תאריך קבלה מאושר מהספק' },
           { label:'ללא הזמנת רכש', value:kpis.noPO, amt:kpis.noPOAmt, color:'var(--red-dark)', info:'אין כלל הזמנת רכש פתוחה עבור מק"ט זה' },
         ].map((k,i) => (
-          <div key={i} style={{ background:'var(--bg-page)', borderRadius:8, padding:'12px 14px' }}>
+          <div key={i} style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:8, padding:'12px 14px' }}>
             <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:4 }}>{k.label}</div>
             <div style={{ fontSize:24, fontWeight:600, color:k.color }}>{k.value}</div>
             <div style={{ fontSize:11, color:'var(--text-muted)', marginTop:3 }}>${Math.round(k.amt).toLocaleString()}</div>
@@ -182,7 +182,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                       <div style={{ overflowX:'auto' }}>
                         <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
                           <thead><tr>{['הזמנה','שורה','לקוח','ת. מאושר','ת. מבוקש','כמות'].map(h=>(
-                            <th key={h} style={{ background:'var(--bg-page)', padding:'4px 7px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                            <th key={h} style={{ background:'var(--bg-neutral)', padding:'4px 7px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                           ))}</tr></thead>
                           <tbody>{item.orders?.map((o,j)=>(
                             <tr key={j} style={{ background:j%2===0?'var(--bg-card)':'var(--bg-row)' }}>
@@ -205,7 +205,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                         : <div style={{ overflowX:'auto' }}>
                             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
                               <thead><tr>{['הז. רכש','שורה','ספק','כמות','יתרה','ת. קבלה'].map(h=>(
-                                <th key={h} style={{ background:'var(--bg-page)', padding:'4px 7px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                <th key={h} style={{ background:'var(--bg-neutral)', padding:'4px 7px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                               ))}</tr></thead>
                               <tbody>{item.purchaseOrders?.map((po,j)=>(
                                 <tr key={j} style={{ background:j%2===0?'var(--bg-card)':'var(--bg-row)' }}>
