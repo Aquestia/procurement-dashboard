@@ -41,46 +41,7 @@
   --navy:         #1A3A5C;
 }
 
-.dark {
-  --bg-page:      #12151A;
-  --bg-card:      #1C2028;
-  --bg-sidebar:   #161920;
-  --bg-row:       #20242D;
-  --bg-neutral:   #1A1E26;
-  --bg-row-alt:   #0D1F35;
-  --border-card:  #2A2F3A;
-  --border-tbl:   #252A35;
-  --border-light: #2A2F3A;
-  --border-blue:  #1A3A5C;
-  --text-main:    #F0F0EA;
-  --text-sub:     #AAAAAA;
-  --text-muted:   #666666;
-  --text-hint:    #444444;
-  --blue:         #5B9FE8;
-  --blue-dark:    #378ADD;
-  --blue-bg:      #0D1F35;
-  --blue-mid:     #378ADD;
-  --red-dark:     #F09595;
-  --red-mid:      #E24B4A;
-  --red-bg:       #2D1515;
-  --red-border:   #5C2020;
-  --green-dark:   #75B798;
-  --green-xdark:  #D1E7DD;
-  --green-mid:    #639922;
-  --green-bg:     #0D1F0A;
-  --green-light:  #0D1F0A;
-  --green-bdr:    #2A5C2A;
-  --amber-dark:   #EF9F27;
-  --amber-txt:    #EF9F27;
-  --amber-mid:    #EF9F27;
-  --amber-bg:     #1F1500;
-  --yellow-bg:    #1A1200;
-  --yellow-bdr:   #6B5200;
-  --purple:       #A9A4E8;
-  --purple-bg:    #1A1840;
-  --purple-dark:  #A9A4E8;
-  --navy:         #5B9FE8;
-}
+
 
 body {
   background: var(--bg-page);
@@ -95,20 +56,11 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-card); border-radius: 9999px; }
 
-/* ── Dark Mode Contrast Fixes ── */
-.dark {
-  /* Stronger contrast for table cells */
-  --text-on-card: #F0F0EA;
-}
+
+
 
 /* Ensure all td/th text is visible in dark mode */
-.dark td, .dark th {
-  color: var(--text-main) !important;
-}
+
 
 /* Override any remaining white backgrounds in dark mode */
-.dark [style*="background: '#fff'"],
-.dark [style*="background:'#fff'"],
-.dark [style*="background: 'white'"] {
-  background: var(--bg-card) !important;
-}
+

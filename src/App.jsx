@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import Sidebar from './components/Sidebar'
 import Overview from './pages/Overview'
@@ -22,20 +22,18 @@ export default function App() {
   const [financials, setFinancials]     = useState(null)
   const [adminUnlocked, setAdminUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === '1')
   const [showChangePin, setShowChangePin] = useState(false)
-  const [darkMode, setDarkMode]         = useState(() => localStorage.getItem('aq-theme') === 'dark')
 
-  // Apply dark mode class to <html>
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode)
-    localStorage.setItem('aq-theme', darkMode ? 'dark' : 'light')
-  }, [darkMode])
-
-  const toggleDarkMode = useCallback(() => setDarkMode(d => !d), [])
 
   function handleSetActivePage(page) {
     localStorage.setItem('activePage', page)
     setActivePage(page)
   }
+
+  useEffect(() => {
+    // Remove any dark mode class that may have been set previously
+    document.documentElement.classList.remove('dark')
+    localStorage.removeItem('aq-theme')
+  }, [])
 
   useEffect(() => { loadActiveFile(); loadNotes() }, [])
 
@@ -130,8 +128,6 @@ export default function App() {
         adminUnlocked={adminUnlocked}
         onLock={() => { setAdminUnlocked(false); sessionStorage.removeItem('admin_unlocked') }}
         onChangePinClick={() => setShowChangePin(s => !s)}
-        darkMode={darkMode}
-        toggleDarkMode={toggleDarkMode}
       />
       <main style={{ flex: 1, overflow: 'auto', background: 'var(--bg-page)', transition: 'background 0.3s' }}>
         {showChangePin && adminUnlocked && (

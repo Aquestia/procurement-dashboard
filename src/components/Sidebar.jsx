@@ -8,7 +8,7 @@ const NAV_ITEMS = [
   { id: 'tapi_requests',   icon: '📋', label: 'בקשות רכש תפ"י' },
 ]
 
-export default function Sidebar({ activePage, setActivePage, activeFile, data, adminUnlocked, onLock, onChangePinClick, darkMode, toggleDarkMode }) {
+export default function Sidebar({ activePage, setActivePage, activeFile, data, adminUnlocked, onLock, onChangePinClick }) {
   const boCount = data?.filter(r => r.isBO)?.length || 0
 
   const navBtn = (id, icon, label, badge) => {
@@ -95,21 +95,6 @@ export default function Sidebar({ activePage, setActivePage, activeFile, data, a
           }}>🔒</button>
         </div>
       )}
-
-      {/* Dark mode toggle */}
-      <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border-card)' }}>
-        <button onClick={toggleDarkMode} style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          padding: '8px 12px', borderRadius: 8,
-          border: '2px solid var(--blue-dark)',
-          background: 'var(--blue-dark)', color: '#fff',
-          fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          justifyContent: 'center', transition: 'all 0.2s',
-        }}>
-          <span style={{ fontSize: 14 }}>{darkMode ? '☀️' : '🌙'}</span>
-          <span>{darkMode ? 'מצב יום' : 'מצב לילה'}</span>
-        </button>
-      </div>
     </aside>
   )
 }
