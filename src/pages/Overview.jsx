@@ -82,10 +82,10 @@ export default function Overview({ data, loading, stageSummary, financials, note
       }))
 
     const poStatus = [
-      { name:'הוזמן',        value: data.filter(r=>r.hasPO&&!r.hasNoDate).length, color:'var(--green-mid)', rows: data.filter(r=>r.hasPO&&!r.hasNoDate) },
-      { name:'ללא הזמנה',    value: noPO.length,  color:'var(--red-mid)', rows: noPO },
-      { name:'ללא תאריך',    value: noDate.length, color:'var(--amber-mid)', rows: noDate },
-      { name:'מאחר',         value: late.length,   color:'var(--red-mid)', rows: late },
+      { name:'הוזמן',        value: data.filter(r=>r.hasPO&&!r.hasNoDate).length, color:'#639922', rows: data.filter(r=>r.hasPO&&!r.hasNoDate) },
+      { name:'ללא הזמנה',    value: noPO.length,  color:'#E24B4A', rows: noPO },
+      { name:'ללא תאריך',    value: noDate.length, color:'#EF9F27', rows: noDate },
+      { name:'מאחר',         value: late.length,   color:'#E24B4A', rows: late },
     ]
 
     const seenOrders = new Set()
@@ -150,23 +150,23 @@ export default function Overview({ data, loading, stageSummary, financials, note
   if (!data || data.length === 0 || !stats) return <EmptyState />
 
   const kpiItems = [
-    { label:'סה"כ מק"טים חסרים', value:data.length,          sub:financials ? `$${Math.round(financials.totalRemainingAll).toLocaleString()}` : 'ייחודיים', color:'var(--blue-dark)', rows:data,
+    { label:'סה"כ מק"טים חסרים', value:data.length,          sub:financials ? `$${Math.round(financials.totalRemainingAll).toLocaleString()}` : 'ייחודיים', color:'#185FA5', rows:data,
       info:'כל המק"טים הייחודיים שמופיעים בלשונית Calculated Allocation עם Shortage = Yes. כל פריט שיש לו חוסר כלשהו, ללא קשר אם הוא BO או לא.' },
-    { label:'מק"טים BO',          value:stats.bo.length,      sub:financials ? `$${Math.round(financials.totalBO).toLocaleString()}` : `$${Math.round(stats.totalUSD).toLocaleString()}`, color:'var(--red-dark)', rows:stats.bo,
+    { label:'מק"טים BO',          value:stats.bo.length,      sub:financials ? `$${Math.round(financials.totalBO).toLocaleString()}` : `$${Math.round(stats.totalUSD).toLocaleString()}`, color:'#A32D2D', rows:stats.bo,
       info:'מק"טים שמשויכים להזמנות Back Orders — הזמנות שעבר תאריך האספקה ועדיין לא סופקו. הסכום הוא שווי ההזמנות הייחודיות בדולרים.' },
-    { label:'בסכנת BO',           value:stats.danger.length,  sub:'ללא רכש',      color:'var(--amber-dark)', rows:stats.danger,
+    { label:'בסכנת BO',           value:stats.danger.length,  sub:'ללא רכש',      color:'#854F0B', rows:stats.danger,
       info:'מק"טים שעדיין אינם BO, אבל אין להם הזמנת רכש פתוחה או שאין תאריך קבלה מאושר — עלולים להפוך ל-BO אם לא יטפלו בהם.' },
-    { label:'ללא הזמנת רכש',      value:stats.noPO.length,    sub:'דורש טיפול',   color:'var(--red-dark)', rows:stats.noPO,
+    { label:'ללא הזמנת רכש',      value:stats.noPO.length,    sub:'דורש טיפול',   color:'#A32D2D', rows:stats.noPO,
       info:'מק"טים שיש להם חוסר אבל לא יצאה בכלל הזמנת רכש עבורם. דורש טיפול מיידי.' },
-    { label:'ללא תאריך קבלה',     value:stats.noDate.length,  sub:'הזמנות פתוחות',color:'var(--amber-dark)', rows:stats.noDate,
+    { label:'ללא תאריך קבלה',     value:stats.noDate.length,  sub:'הזמנות פתוחות',color:'#854F0B', rows:stats.noDate,
       info:'מק"טים שיש להם הזמנת רכש פתוחה, אבל הספק לא אישר תאריך קבלה. יש הזמנה אבל לא ידוע מתי יגיע החומר.' },
   ]
 
   return (
     <div style={{ padding:20 }}>
       <div style={{ display:'flex', alignItems:'center', marginBottom:16 }}>
-        <h1 style={{ fontSize:18, fontWeight:600, color:'var(--text-main)', flex:1 }}>סקירה כללית</h1>
-        <div style={{ fontSize:12, color:'var(--text-muted)', display:'flex', alignItems:'center', gap:6 }}>
+        <h1 style={{ fontSize:18, fontWeight:600, color:'#1a1a1a', flex:1 }}>סקירה כללית</h1>
+        <div style={{ fontSize:12, color:'#888', display:'flex', alignItems:'center', gap:6 }}>
           <span>🕐</span><span>{dateStr} — {timeStr}</span>
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function Overview({ data, loading, stageSummary, financials, note
             </BarChart>
           </ResponsiveContainer>
           {selectedMonth && (
-            <div style={{ fontSize:11, color:'var(--blue)', marginTop:4, textAlign:'center' }}>
+            <div style={{ fontSize:11, color:'#378ADD', marginTop:4, textAlign:'center' }}>
               לחץ שוב על העמודה לביטול הסינון
             </div>
           )}
@@ -209,25 +209,25 @@ export default function Overview({ data, loading, stageSummary, financials, note
 
       {/* Month drill-down panel */}
       {selectedMonth && selectedMonthData && (
-        <div style={{ background:'var(--bg-card)', border:'1.5px solid #378ADD', borderRadius:10, padding:16, marginBottom:12 }}>
+        <div style={{ background:'#fff', border:'1.5px solid #378ADD', borderRadius:10, padding:16, marginBottom:12 }}>
           <div style={{ display:'flex', alignItems:'center', marginBottom:12 }}>
             <h3 style={{ fontSize:14, fontWeight:600, flex:1, margin:0 }}>
               📅 {selectedMonth.label} — {selectedMonthData.items.length} מק"טים ({selectedMonthData.boItems.length} BO)
             </h3>
             <button onClick={() => setSelectedMonth(null)}
-              style={{ fontSize:12, padding:'3px 10px', border:'1px solid var(--border-light)', borderRadius:6, background:'transparent', color:'var(--text-muted)', cursor:'pointer' }}>✕ סגור</button>
+              style={{ fontSize:12, padding:'3px 10px', border:'0.5px solid #ddd', borderRadius:6, background:'transparent', color:'#888', cursor:'pointer' }}>✕ סגור</button>
           </div>
 
           {/* TOP 8 BO לפי לקוח */}
           {selectedMonthData.topCustomers.length > 0 && (
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, fontWeight:600, color:'var(--red-dark)', marginBottom:8 }}>🔴 Back Orders לפי לקוח — TOP 8</div>
+              <div style={{ fontSize:12, fontWeight:600, color:'#A32D2D', marginBottom:8 }}>🔴 Back Orders לפי לקוח — TOP 8</div>
               <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
                 {selectedMonthData.topCustomers.map((c,i) => (
-                  <div key={i} style={{ background:'var(--red-bg)', border:'1px solid var(--red-border)', borderRadius:8, padding:'8px 14px', minWidth:140 }}>
-                    <div style={{ fontSize:11, fontWeight:600, color:'var(--red-dark)' }}>{c.name}</div>
-                    <div style={{ fontSize:13, fontWeight:700, color:'var(--red-dark)', marginTop:2 }}>{c.count} הזמנות</div>
-                    <div style={{ fontSize:10, color:'var(--text-muted)', marginTop:1 }}>{c.items.length} מק"טים</div>
+                  <div key={i} style={{ background:'#FCEBEB', border:'0.5px solid #F09595', borderRadius:8, padding:'8px 14px', minWidth:140 }}>
+                    <div style={{ fontSize:11, fontWeight:600, color:'#A32D2D' }}>{c.name}</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#A32D2D', marginTop:2 }}>{c.count} הזמנות</div>
+                    <div style={{ fontSize:10, color:'#888', marginTop:1 }}>{c.items.length} מק"טים</div>
                   </div>
                 ))}
               </div>
@@ -235,13 +235,13 @@ export default function Overview({ data, loading, stageSummary, financials, note
           )}
 
           {/* טבלת כל המק"טים */}
-          <div style={{ fontSize:12, fontWeight:600, color:'var(--text-sub)', marginBottom:6 }}>כל המק"טים בחודש זה</div>
-          <div style={{ overflowX:'auto', maxHeight:400, overflowY:'auto', border:'1px solid var(--border-card)', borderRadius:8 }}>
+          <div style={{ fontSize:12, fontWeight:600, color:'#555', marginBottom:6 }}>כל המק"טים בחודש זה</div>
+          <div style={{ overflowX:'auto', maxHeight:400, overflowY:'auto', border:'0.5px solid #e5e5e0', borderRadius:8 }}>
             <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:11 }}>
               <thead>
-                <tr style={{ background:'var(--bg-neutral)', position:'sticky', top:0, zIndex:5 }}>
+                <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:5 }}>
                   {['הערות','BO','מק"ט','תיאור מוצר','סטטוס','הז. מכירה','שורה','לקוח','ת. אספקה מאושר','ת. אספקה מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','ספק','צפי קבלה'].map(h => (
-                    <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                    <th key={h} style={{ padding:'6px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -255,43 +255,43 @@ export default function Overview({ data, loading, stageSummary, financials, note
                   ordList.forEach((o,oi) => {
                     pos.forEach((po,pi) => {
                       rows.push(
-                        <tr key={`${i}-${oi}-${pi}`} style={{ background: r.isBO ? 'var(--red-bg)' : i%2===0?'var(--bg-card)':'var(--bg-row)' }}>
+                        <tr key={`${i}-${oi}-${pi}`} style={{ background: r.isBO ? '#FCEBEB18' : i%2===0?'#fff':'#fafaf8' }}>
                           {/* הערות — בכל שורה */}
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', verticalAlign:'middle', whiteSpace:'nowrap' }}>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
                             <button
                               onClick={() => setEditingRow(r)}
                               style={{
                                 fontSize:10, padding:'3px 7px', borderRadius:5, cursor:'pointer',
-                                border: (n.note_procurement || n.note_tapi) ? '1px solid var(--blue)' : '1px solid var(--border-light)',
-                                background: (n.note_procurement || n.note_tapi) ? 'var(--blue-bg)' : 'transparent',
-                                color: (n.note_procurement || n.note_tapi) ? 'var(--blue-dark)' : 'var(--text-muted)',
+                                border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '0.5px solid #ddd',
+                                background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
+                                color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
                                 fontWeight: (n.note_procurement || n.note_tapi) ? 600 : 400,
                               }}>
                               ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
                             </button>
                             <div style={{ marginTop:3, display:'flex', gap:3 }}>
-                              {n.note_procurement && <span style={{ fontSize:9, background:'var(--blue-bg)', color:'var(--blue-dark)', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                              {n.note_tapi && <span style={{ fontSize:9, background:'var(--green-bg)', color:'var(--green-dark)', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                              {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                              {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
                             </div>
                           </td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', textAlign:'center' }}>
-                            {r.isBO ? <span style={{ color:'var(--red-dark)', fontWeight:700, fontSize:10 }}>BO</span> : ''}
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', textAlign:'center' }}>
+                            {r.isBO ? <span style={{ color:'#A32D2D', fontWeight:700, fontSize:10 }}>BO</span> : ''}
                           </td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, whiteSpace:'nowrap' }}>{r.itemNumber}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.productName||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}><Badge status={r.procurementStatus} /></td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{o.salesOrder||r.prd||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{o.lineNumber||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{r.totalQtyRequired}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', color:r.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{r.shortage}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.lineNumber||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
-                          <td style={{ padding:'5px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>{r.itemNumber}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:160, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{r.productName||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={r.procurementStatus} /></td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||r.prd||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{r.totalQtyRequired}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', color:r.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{r.shortage}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
+                          <td style={{ padding:'5px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
                         </tr>
                       )
                     })
@@ -313,12 +313,12 @@ export default function Overview({ data, loading, stageSummary, financials, note
               <div key={i}>
                 <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', borderRadius:6,
                   border:`0.5px solid ${bn.isBO?'#F09595':'#e0e0da'}`,
-                  background:bn.isBO?'var(--red-bg)':'#fff', cursor:'pointer' }}
+                  background:bn.isBO?'#FCEBEB18':'#fff', cursor:'pointer' }}
                   onClick={() => setExpandedBottleneck(expandedBottleneck===bn.item ? null : bn.item)}>
                   <span style={{ fontSize:11, fontWeight:600, flex:1, overflow:'hidden', textOverflow:'ellipsis' }}>{bn.item}</span>
-                  <span style={{ fontSize:10, color:'var(--text-muted)' }}>{bn.count} הזמנות</span>
+                  <span style={{ fontSize:10, color:'#888' }}>{bn.count} הזמנות</span>
                   <span style={{ fontSize:10, padding:'2px 7px', borderRadius:8, fontWeight:600, background:bn.levelBg, color:bn.levelColor }}>{bn.level}</span>
-                  <span style={{ fontSize:11, color:'var(--blue)' }}>{expandedBottleneck===bn.item?'▲':'▼'}</span>
+                  <span style={{ fontSize:11, color:'#378ADD' }}>{expandedBottleneck===bn.item?'▲':'▼'}</span>
                 </div>
                 {expandedBottleneck === bn.item && <BottleneckPanel bn={bn} />}
               </div>
@@ -334,10 +334,10 @@ export default function Overview({ data, loading, stageSummary, financials, note
               return (
                 <div key={i}>
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, marginBottom:2 }}>
-                    <span style={{ color:'var(--text-sub)' }}>{s.name}</span>
+                    <span style={{ color:'#555' }}>{s.name}</span>
                     <span style={{ fontWeight:600 }}>{s.value}</span>
                   </div>
-                  <div style={{ height:8, background:'var(--bg-neutral)', borderRadius:4, overflow:'hidden' }}>
+                  <div style={{ height:8, background:'#f0f0ea', borderRadius:4, overflow:'hidden' }}>
                     <div style={{ height:'100%', width:`${(s.value/max)*100}%`, background:s.color, borderRadius:4 }} />
                   </div>
                 </div>
@@ -346,8 +346,8 @@ export default function Overview({ data, loading, stageSummary, financials, note
           </div>
           <button onClick={() => exportPOStatus(stats.poStatus)} style={{
             marginTop:12, width:'100%', fontSize:11, padding:'5px 0',
-            border:'1pxx solid #378ADD', borderRadius:6, background:'transparent',
-            color:'var(--blue)', cursor:'pointer'
+            border:'0.5px solid #378ADD', borderRadius:6, background:'transparent',
+            color:'#378ADD', cursor:'pointer'
           }}>⬇ ייצוא נתונים מלאים</button>
         </ChartCard>
       </div>
@@ -405,36 +405,36 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
   }
 
   return (
-    <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:8, padding:'10px 12px', cursor:'pointer', position:'relative', transition:'background 0.3s' }}
+    <div style={{ background:'#f4f4f0', borderRadius:8, padding:'10px 12px', cursor:'pointer', position:'relative' }}
       onClick={() => rows && setOpen(o => !o)}>
       {info && (
         <div style={{ position:'absolute', top:6, left:8 }}>
           <button
             onClick={e => { e.stopPropagation(); setShowInfo(s => !s) }}
-            style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'var(--text-muted)', fontSize:10, cursor:'pointer', fontWeight:600, lineHeight:'14px', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}
+            style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'#888', fontSize:10, cursor:'pointer', fontWeight:600, lineHeight:'14px', padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}
             title='מידע'>i</button>
           {showInfo && (
-            <div style={{ position:'absolute', bottom:20, left:0, background:'var(--bg-card)', color:'var(--text-main)', boxShadow:'0 4px 16px rgba(0,0,0,0.15)', border:'1px solid var(--border-card)', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}
+            <div style={{ position:'absolute', bottom:20, left:0, background:'#333', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}
               onClick={e => e.stopPropagation()}>
               {info}
             </div>
           )}
         </div>
       )}
-      <div style={{ fontSize:11, color:'var(--text-muted)', marginBottom:4 }}>{label}</div>
+      <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{label}</div>
       <div style={{ fontSize:22, fontWeight:600, color, lineHeight:1 }}>{value}</div>
-      {sub && <div style={{ fontSize:10, color:'var(--text-hint)', marginTop:3 }}>{sub}</div>}
-      {rows && <div style={{ fontSize:10, color:'var(--blue)', marginTop:4 }}>{open?'▲ סגור':'▼ הצג רשימה'}</div>}
+      {sub && <div style={{ fontSize:10, color:'#999', marginTop:3 }}>{sub}</div>}
+      {rows && <div style={{ fontSize:10, color:'#378ADD', marginTop:4 }}>{open?'▲ סגור':'▼ הצג רשימה'}</div>}
       {open && rows && (
         <div style={{ marginTop:10 }} onClick={e => e.stopPropagation()}>
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:6 }}>
-            <button onClick={exportRows} style={{ fontSize:10, padding:'3px 8px', border:'1px solid var(--blue)', borderRadius:5, background:'var(--blue)', color:'#fff', cursor:'pointer' }}>ייצוא Excel</button>
+            <button onClick={exportRows} style={{ fontSize:10, padding:'3px 8px', border:'0.5px solid #378ADD', borderRadius:5, background:'#378ADD', color:'#fff', cursor:'pointer' }}>ייצוא Excel</button>
           </div>
           <div style={{ overflowX:'auto', maxHeight:300, overflowY:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11, minWidth:1000 }}>
               <thead>
                 <tr>{['הערות','מק"ט','תיאור פריט','סטטוס','נדרש','כמות הוזמנה','יתרה','פק"ע / הזמנה','הז. רכש','שורת רכש','הז. מכירה','שורת מכירה','ת. קבלה מאושר','ת. קבלה מבוקש'].map(h => (
-                  <th key={h} style={{ background:'#F0F0EA', padding:'4px 6px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                  <th key={h} style={{ background:'#f0f0ec', padding:'4px 6px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
@@ -445,36 +445,36 @@ function KpiCard({ label, value, sub, color, rows, info, notes, saveNote, onEdit
                   pos.forEach(po => ords.forEach(o => combos.push({po, o})))
                   const n = notes?.[r.itemNumber] || {}
                   return combos.map(({po, o}, j) => (
-                    <tr key={`${i}-${j}`} style={{ background: i%2===0?'var(--bg-card)':'var(--bg-row)' }}>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', verticalAlign:'middle', whiteSpace:'nowrap' }}>
+                    <tr key={`${i}-${j}`} style={{ background: i%2===0?'#fff':'#fafaf8' }}>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'middle', whiteSpace:'nowrap' }}>
                           <button
                             onClick={e => { e.stopPropagation(); onEditNote && onEditNote(r) }}
                             style={{
                               fontSize:10, padding:'2px 6px', borderRadius:4, cursor:'pointer',
-                              border: (n.note_procurement || n.note_tapi) ? '1px solid var(--blue)' : '1px solid var(--border-light)',
-                              background: (n.note_procurement || n.note_tapi) ? 'var(--blue-bg)' : 'transparent',
-                              color: (n.note_procurement || n.note_tapi) ? 'var(--blue-dark)' : 'var(--text-muted)',
+                              border: (n.note_procurement || n.note_tapi) ? '1px solid #378ADD' : '0.5px solid #ddd',
+                              background: (n.note_procurement || n.note_tapi) ? '#E6F1FB' : 'transparent',
+                              color: (n.note_procurement || n.note_tapi) ? '#185FA5' : '#888',
                             }}>
                             ✏️ {(n.note_procurement || n.note_tapi) ? 'יש הערה' : 'הוסף'}
                           </button>
                           <div style={{ marginTop:2, display:'flex', gap:2 }}>
-                            {n.note_procurement && <span style={{ fontSize:9, background:'var(--blue-bg)', color:'var(--blue-dark)', padding:'1px 4px', borderRadius:3 }}>רכש</span>}
-                            {n.note_tapi && <span style={{ fontSize:9, background:'var(--green-bg)', color:'var(--green-dark)', padding:'1px 4px', borderRadius:3 }}>תפ"י</span>}
+                            {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 4px', borderRadius:3 }}>רכש</span>}
+                            {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 4px', borderRadius:3 }}>תפ"י</span>}
                           </div>
                         </td>
-                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, verticalAlign:'top', whiteSpace:'nowrap' }}>{r.itemNumber}</td>}
-                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', verticalAlign:'top' }}>{r.productName||'—'}</td>}
-                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', verticalAlign:'top' }}><Badge status={r.procurementStatus} /></td>}
-                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, verticalAlign:'top' }}>{r.totalQtyRequired}</td>}
-                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontSize:10, color:'var(--text-sub)', verticalAlign:'top', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>}
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{po.quantity||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, color: po.deliverRemainder>0?'var(--blue-dark)':'var(--text-muted)' }}>{po.deliverRemainder||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)' }}>{po.lineNumber||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{o.salesOrder || (r.prd?.startsWith('SOIL') ? r.prd : '—')}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)' }}>{o.lineNumber||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color: po.confirmedReceiptDate ? 'var(--text-main)' : 'var(--red-dark)' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
-                      <td style={{ padding:'4px 6px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top', whiteSpace:'nowrap' }}>{r.itemNumber}</td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', verticalAlign:'top' }}>{r.productName||'—'}</td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', verticalAlign:'top' }}><Badge status={r.procurementStatus} /></td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, verticalAlign:'top' }}>{r.totalQtyRequired}</td>}
+                      {j===0 && <td rowSpan={combos.length} style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555', verticalAlign:'top', whiteSpace:'nowrap' }}>{r.prd||'—'}</td>}
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.quantity||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, color: po.deliverRemainder>0?'#185FA5':'#888' }}>{po.deliverRemainder||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.purchaseOrder||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder || (r.prd?.startsWith('SOIL') ? r.prd : '—')}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color: po.confirmedReceiptDate ? '#1a1a1a' : '#A32D2D' }}>{fmtDate(po.confirmedReceiptDate)||'—'}</td>
+                      <td style={{ padding:'4px 6px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(po.requestedReceiptDate)||'—'}</td>
                     </tr>
                   ))
                 })}
@@ -507,47 +507,47 @@ function BottleneckPanel({ bn }) {
   }
 
   return (
-    <div style={{ background:'var(--bg-row)', border:'1px solid var(--border-tbl)', borderRadius:6, padding:'10px 12px', marginTop:4 }}>
+    <div style={{ background:'#fafaf8', border:'0.5px solid #e0e0da', borderRadius:6, padding:'10px 12px', marginTop:4 }}>
       <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
         <span style={{ fontSize:11, fontWeight:600 }}>{bn.item} — {bn.productName}</span>
         <Badge status={bn.stage} />
-        <span style={{ fontSize:10, color:'var(--text-muted)', marginRight:'auto' }}>נדרש: <strong>{bn.totalQtyRequired}</strong> | חוסר: <strong style={{ color:'var(--red-dark)' }}>{bn.shortage}</strong></span>
-        <button onClick={exportBN} style={{ fontSize:10, padding:'3px 8px', border:'1px solid var(--blue)', borderRadius:5, background:'var(--blue)', color:'#fff', cursor:'pointer' }}>⬇ Excel</button>
+        <span style={{ fontSize:10, color:'#888', marginRight:'auto' }}>נדרש: <strong>{bn.totalQtyRequired}</strong> | חוסר: <strong style={{ color:'#A32D2D' }}>{bn.shortage}</strong></span>
+        <button onClick={exportBN} style={{ fontSize:10, padding:'3px 8px', border:'0.5px solid #378ADD', borderRadius:5, background:'#378ADD', color:'#fff', cursor:'pointer' }}>⬇ Excel</button>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
         <div>
-          <div style={{ fontSize:10, fontWeight:600, color:'var(--text-sub)', marginBottom:4 }}>הזמנות ({bn.orders.length})</div>
+          <div style={{ fontSize:10, fontWeight:600, color:'#555', marginBottom:4 }}>הזמנות ({bn.orders.length})</div>
           <div style={{ maxHeight:140, overflowY:'auto' }}>
             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:10 }}>
               <thead><tr>{['הזמנה','שורה','לקוח','ת. מאושר'].map(h => (
-                <th key={h} style={{ background:'var(--bg-neutral)', padding:'3px 5px', fontWeight:600, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                <th key={h} style={{ background:'#f0f0ec', padding:'3px 5px', fontWeight:600, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
               ))}</tr></thead>
               <tbody>{bn.orders.map((o,j) => (
                 <tr key={j} style={{ background:j%2===0?'#fff':'#f9f9f7' }}>
-                  <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)' }}>{o.salesOrder||'—'}</td>
-                  <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)' }}>{o.lineNumber||'—'}</td>
-                  <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)', maxWidth:80, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
-                  <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
+                  <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea' }}>{o.salesOrder||'—'}</td>
+                  <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
+                  <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea', maxWidth:80, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
+                  <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
                 </tr>
               ))}</tbody>
             </table>
           </div>
         </div>
         <div>
-          <div style={{ fontSize:10, fontWeight:600, color:'var(--text-sub)', marginBottom:4 }}>הזמנות רכש ({bn.purchaseOrders.length})</div>
+          <div style={{ fontSize:10, fontWeight:600, color:'#555', marginBottom:4 }}>הזמנות רכש ({bn.purchaseOrders.length})</div>
           {bn.purchaseOrders.length === 0
-            ? <div style={{ fontSize:10, color:'var(--red-dark)' }}>❌ אין הזמנות רכש</div>
+            ? <div style={{ fontSize:10, color:'#A32D2D' }}>❌ אין הזמנות רכש</div>
             : <div style={{ maxHeight:140, overflowY:'auto' }}>
                 <table style={{ width:'100%', borderCollapse:'collapse', fontSize:10 }}>
                   <thead><tr>{['הז. רכש','ספק','יתרה','צפי קבלה'].map(h => (
-                    <th key={h} style={{ background:'var(--bg-neutral)', padding:'3px 5px', fontWeight:600, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                    <th key={h} style={{ background:'#f0f0ec', padding:'3px 5px', fontWeight:600, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                   ))}</tr></thead>
                   <tbody>{bn.purchaseOrders.map((p,j) => (
                     <tr key={j} style={{ background:j%2===0?'#fff':'#f9f9f7' }}>
-                      <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)' }}>{p.purchaseOrder}</td>
-                      <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)', maxWidth:80, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.vendorName}</td>
-                      <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{p.deliverRemainder}</td>
-                      <td style={{ padding:'3px 5px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color:!p.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>
+                      <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea' }}>{p.purchaseOrder}</td>
+                      <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea', maxWidth:80, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.vendorName}</td>
+                      <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{p.deliverRemainder}</td>
+                      <td style={{ padding:'3px 5px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!p.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>
                         {p.confirmedReceiptDate ? fmtDate(p.confirmedReceiptDate) : '⚠️ חסר'}
                       </td>
                     </tr>
@@ -565,21 +565,21 @@ function BottleneckPanel({ bn }) {
 function ChartCard({ title, children, onExport, info }) {
   const [showInfo, setShowInfo] = useState(false)
   return (
-    <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:10, padding:14, position:'relative' }}>
+    <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, padding:14, position:'relative' }}>
       <div style={{ display:'flex', alignItems:'center', marginBottom:8, gap:6 }}>
         <span style={{ fontSize:12, fontWeight:600, flex:1 }}>{title}</span>
         {info && (
           <div style={{ position:'relative' }}>
-            <button onClick={() => setShowInfo(s=>!s)} style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'var(--text-muted)', fontSize:10, cursor:'pointer', fontWeight:600, padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>i</button>
+            <button onClick={() => setShowInfo(s=>!s)} style={{ width:16, height:16, borderRadius:'50%', border:'1px solid #888', background:'transparent', color:'#888', fontSize:10, cursor:'pointer', fontWeight:600, padding:0, display:'flex', alignItems:'center', justifyContent:'center' }}>i</button>
             {showInfo && (
-              <div style={{ position:'absolute', top:20, left:-100, background:'var(--bg-card)', color:'var(--text-main)', boxShadow:'0 4px 16px rgba(0,0,0,0.15)', border:'1px solid var(--border-card)', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}>
+              <div style={{ position:'absolute', top:20, left:-100, background:'#333', color:'#fff', fontSize:11, padding:'8px 10px', borderRadius:6, width:220, zIndex:100, lineHeight:1.5, textAlign:'right' }}>
                 {info}
               </div>
             )}
           </div>
         )}
         {onExport && (
-          <button onClick={onExport} style={{ fontSize:10, padding:'2px 8px', border:'1pxx solid #378ADD', borderRadius:5, background:'transparent', color:'var(--blue)', cursor:'pointer' }}>⬇ Excel</button>
+          <button onClick={onExport} style={{ fontSize:10, padding:'2px 8px', border:'0.5px solid #378ADD', borderRadius:5, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ Excel</button>
         )}
       </div>
       {children}
@@ -611,15 +611,15 @@ function NotesModal({ row, notes, onSave, onClose }) {
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}
       onClick={onClose}>
-      <div style={{ background:'var(--bg-card)', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
+      <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
         onClick={e => e.stopPropagation()}>
 
         <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
-            <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{row.productName}</div>
+            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{row.productName}</div>
           </div>
-          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', lineHeight:1 }}>✕</button>
+          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'#888', lineHeight:1 }}>✕</button>
         </div>
 
         <NoteField label='הערת רכש' value={procNote} onChange={setProcNote} color='#185FA5' />
@@ -629,15 +629,15 @@ function NotesModal({ row, notes, onSave, onClose }) {
         <div style={{ display:'flex', gap:8, marginTop:20, justifyContent:'flex-start' }}>
           <button onClick={handleSave} disabled={saving} style={{
             fontSize:13, padding:'8px 20px', borderRadius:7, border:'none',
-            background:'var(--blue)', color:'#fff', cursor:'pointer', fontWeight:600
+            background:'#378ADD', color:'#fff', cursor:'pointer', fontWeight:600
           }}>{saving ? 'שומר...' : '💾 שמור'}</button>
           <button onClick={handleClear} style={{
             fontSize:13, padding:'8px 16px', borderRadius:7,
-            border:'1pxx solid #E24B4A', background:'transparent', color:'var(--red-mid)', cursor:'pointer'
+            border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer'
           }}>🗑 מחק הערות</button>
           <button onClick={onClose} style={{
             fontSize:13, padding:'8px 16px', borderRadius:7,
-            border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-sub)', cursor:'pointer'
+            border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer'
           }}>ביטול</button>
         </div>
       </div>
@@ -674,16 +674,16 @@ function NoteField({ label, value, onChange, color }) {
             { label:'U', title:'קו תחתי', prefix:'__', suffix:'__', style:{ textDecoration:'underline' } },
           ].map(btn => (
             <button key={btn.label} title={btn.title} onClick={() => insertFormat(btn.prefix, btn.suffix)}
-              style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer', ...btn.style }}>
+              style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer', ...btn.style }}>
               {btn.label}
             </button>
           ))}
           <button title='רשימה' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n• ' : '• ')); setTimeout(()=>ref.current?.focus(),0) }}
-            style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer' }}>
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
             •
           </button>
           <button title='מספור' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n1. ' : '1. ')); setTimeout(()=>ref.current?.focus(),0) }}
-            style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer' }}>
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
             1.
           </button>
         </div>
@@ -696,7 +696,7 @@ function NoteField({ label, value, onChange, color }) {
         style={{
           width:'100%', height:120, fontSize:13, padding:'10px 12px',
           border:`1px solid ${color}40`, borderRadius:8, resize:'vertical',
-          background:'var(--bg-row)', color:'var(--text-main)', lineHeight:1.6,
+          background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6,
           fontFamily:'inherit', direction:'rtl', textAlign:'right',
           outline:'none', boxSizing:'border-box',
         }}
