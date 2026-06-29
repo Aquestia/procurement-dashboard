@@ -46,7 +46,7 @@ export default function App() {
           const meta = all.find(r => r.__meta)
           const items = all.filter(r => !r.__meta)
           setStageSummary(meta?.stageSummary || null)
-          setFinancials(meta?.financials || null)
+          setFinancials({ ...(meta?.financials || {}), simpleTotalBO: meta?.simpleTotalBO || 0, simpleTotalLines: meta?.simpleTotalLines || 0 })
           setData(items)
         }
       }
