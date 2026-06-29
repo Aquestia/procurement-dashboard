@@ -91,8 +91,8 @@ export default function BackOrders({ data, notes, saveNote, loading, financials 
   }, [orderLines, filterPO, search, sortAmt, sortItems])
 
   const kpis = useMemo(() => {
-    const totalBoAmount = financials?.totalBO || 0
-    const totalBoLines  = financials?.totalBoLines || orderLines.length
+    const totalBoAmount = financials?.simpleTotalBO || 0
+    const totalBoLines  = financials?.simpleTotalLines || orderLines.length
     const noPO   = orderLines.filter(l => (l.shortages||[]).some(s => !s.hasPO))
     const noDate = orderLines.filter(l => (l.shortages||[]).some(s => s.hasPO && !s.confirmedReceiptDate))
     const uniqueItems = new Set()
