@@ -9,8 +9,8 @@ const COLS = [
   { label: 'שורה',           w: 55  },
   { label: 'לקוח',           w: 160 },
   { label: 'ת. אספקה מאושר', w: 110 },
-  { label: 'ערך BO ($)',      w: 120, sortable: true },
-  { label: 'מק"טים חסרים',   w: 80  },
+  { label: 'ערך BO ($)',      w: 120, sortable: 'amt' },
+  { label: 'מק"טים חסרים',   w: 90, sortable: 'items' },
 ]
 
 export default function BackOrders({ data, notes, saveNote, loading }) {
@@ -19,6 +19,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   const [editingRow, setEditingRow]     = useState(null)
   const [expandedKey, setExpandedKey]   = useState(null)
   const [sortAmt, setSortAmt]           = useState(null) // 'desc' | 'asc' | null
+  const [sortItems, setSortItems]       = useState(null) // 'desc' | 'asc' | null
 
   // קיבוץ מחדש: במקום מק"ט → הזמנות, בונים הזמנה+שורה → מק"טים חסרים
   const orderLines = useMemo(() => {
@@ -34,13 +35,13 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
         if (!lineMap[key]) {
           lineMap[key] = {
             key,
-            salesOrder:       order.salesOrder,
-            lineNumber:       order.lineNumber,
-            customerName:     order.customerName,
+            salesOrder:        order.salesOrder,
+            lineNumber:        order.lineNumber,
+            customerName:      order.customerName,
             confirmedShipDate: order.confirmedShipDate,
             requestedShipDate: order.requestedShipDate,
-            remainingAmount:  order.remainingAmount || 0,
-            shortages: [],   // כל המק"טים החסרים לשורה זו
+            remainingAmount:   order.remainingAmount || 0,  // נלקח פעם אחת בלבד — כשהשורה נוצרת
+            shortages: [],
           }
         }
         // הוספת המק"ט החסר אם לא קיים כבר
@@ -82,10 +83,12 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
       }
       return true
     })
-    if (sortAmt === 'desc') result = [...result].sort((a, b) => b.remainingAmount - a.remainingAmount)
-    if (sortAmt === 'asc')  result = [...result].sort((a, b) => a.remainingAmount - b.remainingAmount)
+    if (sortAmt === 'desc')   result = [...result].sort((a, b) => b.remainingAmount - a.remainingAmount)
+    if (sortAmt === 'asc')    result = [...result].sort((a, b) => a.remainingAmount - b.remainingAmount)
+    if (sortItems === 'desc') result = [...result].sort((a, b) => (b.shortages||[]).length - (a.shortages||[]).length)
+    if (sortItems === 'asc')  result = [...result].sort((a, b) => (a.shortages||[]).length - (b.shortages||[]).length)
     return result
-  }, [orderLines, filterPO, search, sortAmt])
+  }, [orderLines, filterPO, search, sortAmt, sortItems])
 
   const kpis = useMemo(() => {
     const totalAmount = orderLines.reduce((s, l) => s + (l.remainingAmount || 0), 0)
@@ -195,11 +198,20 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                   background:'#f4f4f0', zIndex:10, minWidth:w, width:w,
                   cursor: sortable ? 'pointer' : 'default',
                   userSelect:'none',
-                }} onClick={sortable ? () => setSortAmt(s => s === 'desc' ? 'asc' : s === 'asc' ? null : 'desc') : undefined}>
+                }} onClick={
+                  sortable === 'amt'   ? () => setSortAmt(s => s === 'desc' ? 'asc' : s === 'asc' ? null : 'desc') :
+                  sortable === 'items' ? () => setSortItems(s => s === 'desc' ? 'asc' : s === 'asc' ? null : 'desc') :
+                  undefined
+                }>
                   <span>{label}</span>
-                  {sortable && (
+                  {sortable === 'amt' && (
                     <span style={{ marginRight:4, color: sortAmt ? '#378ADD' : '#bbb', fontSize:10 }}>
                       {sortAmt === 'desc' ? ' ▼' : sortAmt === 'asc' ? ' ▲' : ' ⇅'}
+                    </span>
+                  )}
+                  {sortable === 'items' && (
+                    <span style={{ marginRight:4, color: sortItems ? '#378ADD' : '#bbb', fontSize:10 }}>
+                      {sortItems === 'desc' ? ' ▼' : sortItems === 'asc' ? ' ▲' : ' ⇅'}
                     </span>
                   )}
                 </th>
