@@ -94,13 +94,17 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     const totalAmount = orderLines.reduce((s, l) => s + (l.remainingAmount || 0), 0)
     const noPO   = orderLines.filter(l => (l.shortages||[]).some(s => !s.hasPO))
     const noDate = orderLines.filter(l => (l.shortages||[]).some(s => s.hasPO && !s.confirmedReceiptDate))
+    // מק"טים ייחודיים — Set של כל itemNumber שמופיע בכל השורות
+    const uniqueItems = new Set()
+    orderLines.forEach(l => (l.shortages||[]).forEach(s => uniqueItems.add(s.itemNumber)))
     return {
-      totalLines:  orderLines.length,
+      totalLines:    orderLines.length,
       totalAmount,
-      noPOCount:   noPO.length,
-      noPOAmount:  noPO.reduce((s, l) => s + (l.remainingAmount || 0), 0),
-      noDateCount: noDate.length,
-      noDateAmount: noDate.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+      uniqueItems:   uniqueItems.size,
+      noPOCount:     noPO.length,
+      noPOAmount:    noPO.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+      noDateCount:   noDate.length,
+      noDateAmount:  noDate.reduce((s, l) => s + (l.remainingAmount || 0), 0),
     }
   }, [orderLines])
 
@@ -152,14 +156,15 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   }
 
   return (
-    <PageWrapper title={`Back Orders — ${orderLines.length} שורות הזמנה`} topActions={
+    <PageWrapper title={`Back Orders — ${orderLines.length} שורות הזמנה | ${kpis.uniqueItems || 0} מק"טים`} topActions={
       <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'0.5px solid #378ADD', borderRadius:6, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ ייצוא Excel</button>
     }>
 
       {/* KPI cards */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:16 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:16 }}>
         {[
-          { label:'סה"כ שורות BO',   value:kpis.totalLines,  amt:kpis.totalAmount,   color:'#A32D2D' },
+          { label:'שורות הזמנה BO',  value:kpis.totalLines,  amt:kpis.totalAmount,   color:'#A32D2D' },
+          { label:'מק"טים ייחודיים', value:kpis.uniqueItems, amt:kpis.totalAmount,   color:'#A32D2D' },
           { label:'ללא תאריך רכש',   value:kpis.noDateCount, amt:kpis.noDateAmount,  color:'#854F0B' },
           { label:'ללא הזמנת רכש',   value:kpis.noPOCount,   amt:kpis.noPOAmount,    color:'#A32D2D' },
         ].map((k,i) => (
