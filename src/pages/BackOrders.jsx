@@ -40,7 +40,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
             customerName:      order.customerName,
             confirmedShipDate: order.confirmedShipDate,
             requestedShipDate: order.requestedShipDate,
-            remainingAmount:   order.boAmount || order.remainingAmount || 0,  // boAmount מ-BO sheet, fallback ל-remainingAmount
+            remainingAmount:   order.remainingAmount || 0,
             shortages: [],
           }
         }
@@ -91,20 +91,20 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   }, [orderLines, filterPO, search, sortAmt, sortItems])
 
   const kpis = useMemo(() => {
-    const totalAmount = orderLines.reduce((s, l) => s + (l.remainingAmount || 0), 0)
+    const totalBoAmount = data?.totalBoAmount || 0
+    const totalBoLines  = data?.totalBoLines  || 0
     const noPO   = orderLines.filter(l => (l.shortages||[]).some(s => !s.hasPO))
     const noDate = orderLines.filter(l => (l.shortages||[]).some(s => s.hasPO && !s.confirmedReceiptDate))
-    // מק"טים ייחודיים — Set של כל itemNumber שמופיע בכל השורות
     const uniqueItems = new Set()
     orderLines.forEach(l => (l.shortages||[]).forEach(s => uniqueItems.add(s.itemNumber)))
     return {
-      totalLines:    orderLines.length,
-      totalAmount,
+      totalLines:    totalBoLines,
+      totalAmount:   totalBoAmount,
       uniqueItems:   uniqueItems.size,
       noPOCount:     noPO.length,
-      noPOAmount:    noPO.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+      noPOAmount:    totalBoAmount,
       noDateCount:   noDate.length,
-      noDateAmount:  noDate.reduce((s, l) => s + (l.remainingAmount || 0), 0),
+      noDateAmount:  totalBoAmount,
     }
   }, [orderLines])
 
