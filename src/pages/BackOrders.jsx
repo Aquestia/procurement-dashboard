@@ -23,9 +23,10 @@ const COLS = [
 ]
 
 export default function BackOrders({ data, notes, saveNote, loading }) {
-  const [search, setSearch]         = useState('')
-  const [filterPO, setFilterPO]     = useState('הכל')
-  const [editingRow, setEditingRow] = useState(null)
+  const [search, setSearch]             = useState('')
+  const [filterPO, setFilterPO]         = useState('הכל')
+  const [editingRow, setEditingRow]     = useState(null)
+  const [expandedItem, setExpandedItem] = useState(null)
 
   const boData = useMemo(() => data?.filter(r => r.isBO) || [], [data])
 
@@ -146,120 +147,202 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                   padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555',
                   borderBottom:'0.5px solid #e0e0da', textAlign:'right',
                   whiteSpace:'nowrap', position:'sticky', top:0,
-                  background:'#f4f4f0', zIndex:10, minWidth: w, width: w,
+                  background:'#f4f4f0', zIndex:10, minWidth:w, width:w,
                 }}>{label}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {filtered.map((row, i) => {
-              const n        = notes[row.itemNumber] || {}
-              const hasNote  = !!(n.note_procurement || n.note_tapi)
-              const firstOrd = row.orders?.[0] || {}
-              const po       = firstPO(row)
+              const n          = notes[row.itemNumber] || {}
+              const hasNote    = !!(n.note_procurement || n.note_tapi)
+              const firstOrd   = row.orders?.[0] || {}
+              const po         = firstPO(row)
+              const isExpanded = expandedItem === row.itemNumber
 
               return (
-                <tr key={i} style={{
-                  background: !row.hasPO ? '#FCEBEB18' : i%2===0 ? '#fff' : '#fafaf8',
-                  cursor:'default',
-                }}>
-                  {/* הערות */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
-                    <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                      {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                      {n.note_tapi        && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
-                      <button onClick={() => setEditingRow(row)} style={{
-                        fontSize:10, padding:'1px 6px', borderRadius:4,
-                        border:'0.5px solid #ddd',
-                        background: hasNote ? '#E6F1FB' : '#f4f4f0',
-                        color: hasNote ? '#185FA5' : '#555',
-                        cursor:'pointer',
-                      }}>✏️</button>
-                    </div>
-                  </td>
+                <React.Fragment key={i}>
+                  {/* Main row */}
+                  <tr
+                    style={{ background: !row.hasPO ? '#FCEBEB18' : i%2===0 ? '#fff' : '#fafaf8', cursor:'pointer' }}
+                    onClick={() => setExpandedItem(isExpanded ? null : row.itemNumber)}
+                  >
+                    {/* הערות */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
+                      <div style={{ display:'flex', gap:4, alignItems:'center' }}>
+                        {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                        {n.note_tapi        && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                        <button onClick={() => setEditingRow(row)} style={{
+                          fontSize:10, padding:'1px 6px', borderRadius:4,
+                          border:'0.5px solid #ddd',
+                          background: hasNote ? '#E6F1FB' : '#f4f4f0',
+                          color: hasNote ? '#185FA5' : '#555',
+                          cursor:'pointer',
+                        }}>✏️</button>
+                      </div>
+                    </td>
 
-                  {/* מק"ט */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>
-                    {row.itemNumber}
-                  </td>
+                    {/* מק"ט */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>
+                      <span style={{ marginLeft:4, fontSize:10, color:'#378ADD' }}>{isExpanded ? '▲' : '▼'}</span>
+                      {row.itemNumber}
+                    </td>
 
-                  {/* תיאור */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {row.productName||'—'}
-                  </td>
+                    {/* תיאור */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {row.productName||'—'}
+                    </td>
 
-                  {/* סטטוס */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
-                    <Badge status='BO' />
-                  </td>
+                    {/* סטטוס */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
+                      <Badge status='BO' />
+                    </td>
 
-                  {/* פק"ע */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, color:'#555', whiteSpace:'nowrap' }}>
-                    {prdDisplay(row)}
-                  </td>
+                    {/* פק"ע */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, color:'#555', whiteSpace:'nowrap' }}>
+                      {prdDisplay(row)}
+                    </td>
 
-                  {/* הז. מכירה */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>
-                    {soDisplay(row)}
-                  </td>
+                    {/* הז. מכירה */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>
+                      {soDisplay(row)}
+                    </td>
 
-                  {/* שורת מכירה */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>
-                    {firstOrd.lineNumber||'—'}
-                  </td>
+                    {/* שורת מכירה */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>
+                      {firstOrd.lineNumber||'—'}
+                    </td>
 
-                  {/* לקוח */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {firstOrd.customerName||'—'}
-                  </td>
+                    {/* לקוח */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {firstOrd.customerName||'—'}
+                    </td>
 
-                  {/* ת. אספקה מאושר */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: firstOrd.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>
-                    {fmtDate(firstOrd.confirmedShipDate)||'—'}
-                  </td>
+                    {/* ת. אספקה מאושר */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: firstOrd.confirmedShipDate ? '#1a1a1a' : '#aaa' }}>
+                      {fmtDate(firstOrd.confirmedShipDate)||'—'}
+                    </td>
 
-                  {/* נדרש */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>
-                    {row.totalQtyRequired}
-                  </td>
+                    {/* נדרש */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>
+                      {row.totalQtyRequired}
+                    </td>
 
-                  {/* חוסר */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color: row.shortage > 0 ? '#A32D2D' : '#3B6D11', fontWeight:600 }}>
-                    {row.shortage}
-                  </td>
+                    {/* חוסר */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color: row.shortage > 0 ? '#A32D2D' : '#3B6D11', fontWeight:600 }}>
+                      {row.shortage}
+                    </td>
 
-                  {/* הז. רכש */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
-                    {!row.hasPO
-                      ? <span style={{ color:'#A32D2D', fontSize:10 }}>❌ ללא הז. רכש</span>
-                      : po.purchaseOrder||'—'}
-                  </td>
+                    {/* הז. רכש */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
+                      {!row.hasPO
+                        ? <span style={{ color:'#A32D2D', fontSize:10 }}>❌ ללא הז. רכש</span>
+                        : po.purchaseOrder||'—'}
+                    </td>
 
-                  {/* שורת רכש */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>
-                    {po.lineNumber||'—'}
-                  </td>
+                    {/* שורת רכש */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>
+                      {po.lineNumber||'—'}
+                    </td>
 
-                  {/* ספק */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                    {row.vendors?.join(', ')||'—'}
-                  </td>
+                    {/* ספק */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                      {row.vendors?.join(', ')||'—'}
+                    </td>
 
-                  {/* כמות הוזמנה */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
-                    {po.quantity||'—'}
-                  </td>
+                    {/* כמות הוזמנה */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}>
+                      {po.quantity||'—'}
+                    </td>
 
-                  {/* יתרה */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>
-                    {po.deliverRemainder||'—'}
-                  </td>
+                    {/* יתרה */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>
+                      {po.deliverRemainder||'—'}
+                    </td>
 
-                  {/* ת. קבלה מאושר */}
-                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: !row.confirmedReceiptDate ? '#A32D2D' : '#1a1a1a' }}>
-                    {fmtDate(row.confirmedReceiptDate)||'⚠️ חסר'}
-                  </td>
-                </tr>
+                    {/* ת. קבלה מאושר */}
+                    <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11, color: !row.confirmedReceiptDate ? '#A32D2D' : '#1a1a1a' }}>
+                      {fmtDate(row.confirmedReceiptDate)||'⚠️ חסר'}
+                    </td>
+                  </tr>
+
+                  {/* Expanded row — הזמנות מכירה + רכש */}
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={COLS.length} style={{ padding:0, borderBottom:'0.5px solid #e0e0da', background:'#f8f8f6' }}>
+                        <div style={{ padding:'12px 16px', direction:'rtl' }}>
+                          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+
+                            {/* הזמנות מכירה */}
+                            <div>
+                              <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>
+                                הזמנות מכירה ({row.orders?.length||0})
+                              </div>
+                              <div style={{ overflowX:'auto' }}>
+                                <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+                                  <thead>
+                                    <tr>
+                                      {['הזמנה','שורה','לקוח','ת. מאושר','ת. מבוקש','כמות'].map(h => (
+                                        <th key={h} style={{ background:'#f0f0ec', padding:'4px 7px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                      ))}
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {row.orders?.map((o, j) => (
+                                      <tr key={j} style={{ background: j%2===0 ? '#fff' : '#fafaf8' }}>
+                                        <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{o.salesOrder||'—'}</td>
+                                        <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{o.lineNumber||'—'}</td>
+                                        <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{o.customerName||'—'}</td>
+                                        <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.confirmedShipDate)||'—'}</td>
+                                        <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(o.requestedShipDate)||'—'}</td>
+                                        <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{o.qtyRequired||'—'}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+
+                            {/* הזמנות רכש */}
+                            <div>
+                              <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>
+                                הזמנות רכש ({row.purchaseOrders?.length||0})
+                              </div>
+                              {!row.hasPO
+                                ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש פתוחות</div>
+                                : <div style={{ overflowX:'auto' }}>
+                                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+                                      <thead>
+                                        <tr>
+                                          {['הז. רכש','שורה','ספק','כמות','יתרה','ת. קבלה'].map(h => (
+                                            <th key={h} style={{ background:'#f0f0ec', padding:'4px 7px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                          ))}
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {row.purchaseOrders?.map((p, j) => (
+                                          <tr key={j} style={{ background: j%2===0 ? '#fff' : '#fafaf8' }}>
+                                            <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontWeight:500 }}>{p.purchaseOrder||'—'}</td>
+                                            <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{p.lineNumber||'—'}</td>
+                                            <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.vendorName||'—'}</td>
+                                            <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea' }}>{p.quantity||'—'}</td>
+                                            <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{p.deliverRemainder||'—'}</td>
+                                            <td style={{ padding:'4px 7px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color: !p.confirmedReceiptDate ? '#A32D2D' : '#1a1a1a' }}>
+                                              {fmtDate(p.confirmedReceiptDate)||'⚠️ חסר'}
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               )
             })}
           </tbody>
