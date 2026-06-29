@@ -192,6 +192,8 @@ function determineStage(references, dr4Map, dr5Map, orderByPRD) {
 function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) {
   const { boItems, boOrders, boAmountBySlKey } = boSet
   const { slToOrder } = orderByPRD
+  console.log('boAmountBySlKey keys sample:', Object.keys(boAmountBySlKey).slice(0, 5))
+  console.log('boAmountBySlKey total keys:', Object.keys(boAmountBySlKey).length)
   const itemMap = {}
 
   calcAlloc.forEach(r => {
@@ -235,6 +237,7 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
     if (number2 && number2 !== reference) entry.references.add(number2)
 
     if (salesOrder && !entry.orders.find(o => o.salesOrder === salesOrder && o.lineNumber === rawLine)) {
+      if (isBO && !boAmountBySlKey[slKey]) console.log('NO boAmount for slKey:', slKey)
       entry.orders.push({
         salesOrder, lineNumber: rawLine, slKey,
         customerName: str(r['Customer Name'] || r['Customer name2'] || ''),
