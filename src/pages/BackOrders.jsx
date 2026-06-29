@@ -1,11 +1,19 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Badge, fmtDate, LoadingState, EmptyState, PageWrapper } from '../components/shared'
 import * as XLSX from 'xlsx'
+
+const STATUS_OPTIONS = [
+  { value: '',        label: '—',        bg: 'transparent',       color: 'var(--text-muted)',  border: 'var(--border-light)' },
+  { value: 'בטיפול',  label: 'בטיפול',   bg: 'var(--yellow-bg)',   color: 'var(--amber-dark)',  border: '#FFCA2C'             },
+  { value: 'טופל',    label: 'טופל ✓',   bg: 'var(--green-bg)',    color: 'var(--green-dark)',  border: '#75B798'             },
+  { value: 'הטסה',    label: 'הטסה ✈',   bg: 'var(--blue-bg)',     color: 'var(--blue-dark)',   border: '#378ADD'             },
+]
 
 export default function BackOrders({ data, notes, saveNote, loading }) {
   const [search, setSearch] = useState('')
   const [filterPO, setFilterPO] = useState('הכל')
   const [expandedItem, setExpandedItem] = useState(null)
+  const [editingRow, setEditingRow] = useState(null)
 
   const boData = useMemo(() => data?.filter(r => r.isBO) || [], [data])
 
@@ -119,12 +127,28 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
           const firstOrder = item.orders?.[0]
           const firstPO = item.purchaseOrders?.[0]
           const isExpanded = expandedItem === item.itemNumber
+          const treatment = n.treatment_status || ''
+          const statusOpt = STATUS_OPTIONS.find(s => s.value === treatment) || STATUS_OPTIONS[0]
 
           return (
-            <div key={i} style={{ background:'var(--bg-card)', border:`0.5px solid ${!item.hasPO?'#F09595':'#e0e0da'}`, borderRadius:10, overflow:'hidden' }}>
+            <div key={i} style={{ background:'var(--bg-card)', border:`1px solid ${!item.hasPO?'#F09595':'var(--border-card)'}`, borderRadius:10, overflow:'hidden' }}>
               {/* Header row */}
-              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'#FCEBEB18', cursor:'pointer' }}
+              <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background: treatment==='טופל'?'var(--green-bg)':treatment==='בטיפול'?'var(--yellow-bg)':treatment==='הטסה'?'var(--blue-bg)':'#FCEBEB18', cursor:'pointer' }}
                 onClick={() => setExpandedItem(isExpanded ? null : item.itemNumber)}>
+                {/* Status + pencil — stop propagation so click doesn't toggle expand */}
+                <div style={{ display:'flex', flexDirection:'column', gap:4, flexShrink:0 }} onClick={e => e.stopPropagation()}>
+                  <select value={treatment}
+                    onChange={e => saveNote(item.itemNumber, 'treatment_status', e.target.value)}
+                    style={{ fontSize:10, padding:'2px 5px', border:`1px solid ${statusOpt.border}`, borderRadius:5, background:statusOpt.bg, color:statusOpt.color, cursor:'pointer', fontWeight:600 }}>
+                    {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                  <button onClick={() => setEditingRow(item)}
+                    style={{ fontSize:11, padding:'2px 6px', borderRadius:4, border:'1px solid var(--border-light)', background:'var(--bg-card)', color:'var(--text-sub)', cursor:'pointer', display:'flex', alignItems:'center', gap:3 }}>
+                    ✏️
+                    {n.note_procurement && <span style={{ fontSize:8, background:'var(--blue-bg)', color:'var(--blue-dark)', padding:'0 3px', borderRadius:3 }}>רכש</span>}
+                    {n.note_tapi && <span style={{ fontSize:8, background:'var(--green-bg)', color:'var(--green-dark)', padding:'0 3px', borderRadius:3 }}>תפ"י</span>}
+                  </button>
+                </div>
                 <div style={{ flex:1 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:3, flexWrap:'wrap' }}>
                     <span style={{ fontSize:13, fontWeight:600 }}>{item.itemNumber}</span>
@@ -218,7 +242,78 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
         })}
         {filtered.length === 0 && <EmptyState message='אין Back Orders' />}
       </div>
+
+      {/* Notes Modal */}
+      {editingRow && (
+        <NotesModal
+          row={editingRow}
+          notes={notes[editingRow.itemNumber] || {}}
+          onSave={(field, value) => saveNote(editingRow.itemNumber, field, value)}
+          onClose={() => setEditingRow(null)}
+        />
+      )}
     </PageWrapper>
+  )
+}
+
+// ── Notes Modal ───────────────────────────────────────────────────
+function NotesModal({ row, notes, onSave, onClose }) {
+  const [procNote, setProcNote] = useState(notes.note_procurement || '')
+  const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave('both', { note_procurement: procNote, note_tapi: tapiNote })
+    setSaving(false)
+    onClose()
+  }
+
+  async function handleClear() {
+    if (!confirm('למחוק את כל ההערות?')) return
+    setProcNote(''); setTapiNote('')
+    await onSave('both', { note_procurement: '', note_tapi: '' })
+    onClose()
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}
+      onClick={onClose}>
+      <div style={{ background:'var(--bg-card)', borderRadius:12, padding:24, width:640, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
+            <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{row.productName}</div>
+          </div>
+          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}>✕</button>
+        </div>
+        <NoteField label='הערת רכש' value={procNote} onChange={setProcNote} color='var(--blue-dark)' />
+        <div style={{ height:12 }} />
+        <NoteField label='הערת תפ"י' value={tapiNote} onChange={setTapiNote} color='var(--green-dark)' />
+        <div style={{ display:'flex', gap:8, marginTop:20 }}>
+          <button onClick={handleSave} disabled={saving} style={{ fontSize:13, padding:'8px 20px', borderRadius:7, border:'none', background:'var(--blue)', color:'#fff', cursor:'pointer', fontWeight:600 }}>
+            {saving ? 'שומר...' : '💾 שמור'}
+          </button>
+          <button onClick={handleClear} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'1px solid var(--red-mid)', background:'transparent', color:'var(--red-mid)', cursor:'pointer' }}>🗑 מחק הערות</button>
+          <button onClick={onClose} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-sub)', cursor:'pointer' }}>ביטול</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function NoteField({ label, value, onChange, color }) {
+  const ref = useRef(null)
+  return (
+    <div>
+      <div style={{ fontSize:12, fontWeight:600, color, marginBottom:6 }}>{label}</div>
+      <textarea ref={ref} value={value} onChange={e => onChange(e.target.value)}
+        placeholder={`כתוב ${label} כאן...`} rows={4}
+        style={{ width:'100%', fontSize:13, padding:'10px 12px', border:`1px solid ${color}40`, borderRadius:8,
+          resize:'vertical', background:'var(--bg-row)', color:'var(--text-main)', lineHeight:1.6,
+          fontFamily:'inherit', direction:'rtl', textAlign:'right', outline:'none', boxSizing:'border-box' }} />
+    </div>
   )
 }
 
