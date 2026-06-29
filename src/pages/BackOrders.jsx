@@ -71,22 +71,26 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
 
   const filtered = useMemo(() => {
     let result = orderLines.filter(line => {
-      if (filterPO === 'ללא הזמנה' && line.shortages.every(s => s.hasPO)) return false
-      if (filterPO === 'ללא תאריך' && line.shortages.every(s => !s.hasPO || s.confirmedReceiptDate)) return false
+      const shortages = line.shortages || []
+      if (filterPO === 'ללא הזמנה' && shortages.every(s => s.hasPO)) return false
+      if (filterPO === 'ללא תאריך' && shortages.every(s => !s.hasPO || s.confirmedReceiptDate)) return false
       if (search) {
         const s = search.toLowerCase()
         return line.salesOrder?.toLowerCase().includes(s) ||
           line.customerName?.toLowerCase().includes(s) ||
-          line.shortages.some(sh => sh.itemNumber?.toLowerCase().includes(s) || sh.productName?.toLowerCase().includes(s))
+          shortages.some(sh => sh.itemNumber?.toLowerCase().includes(s) || sh.productName?.toLowerCase().includes(s))
       }
       return true
     })
-  }, [orderLines, filterPO, search])
+    if (sortAmt === 'desc') result = [...result].sort((a, b) => b.remainingAmount - a.remainingAmount)
+    if (sortAmt === 'asc')  result = [...result].sort((a, b) => a.remainingAmount - b.remainingAmount)
+    return result
+  }, [orderLines, filterPO, search, sortAmt])
 
   const kpis = useMemo(() => {
     const totalAmount = orderLines.reduce((s, l) => s + (l.remainingAmount || 0), 0)
-    const noPO   = orderLines.filter(l => l.shortages.some(s => !s.hasPO))
-    const noDate = orderLines.filter(l => l.shortages.some(s => s.hasPO && !s.confirmedReceiptDate))
+    const noPO   = orderLines.filter(l => (l.shortages||[]).some(s => !s.hasPO))
+    const noDate = orderLines.filter(l => (l.shortages||[]).some(s => s.hasPO && !s.confirmedReceiptDate))
     return {
       totalLines:  orderLines.length,
       totalAmount,
@@ -205,11 +209,12 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
           <tbody>
             {filtered.map((line, i) => {
               const isExpanded  = expandedKey === line.key
-              const hasNoPO     = line.shortages.some(s => !s.hasPO)
-              const hasNoDate   = line.shortages.some(s => s.hasPO && !s.confirmedReceiptDate)
+              const shortages   = line.shortages || []
+              const hasNoPO     = shortages.some(s => !s.hasPO)
+              const hasNoDate   = shortages.some(s => s.hasPO && !s.confirmedReceiptDate)
               // הערות — לפי המק"ט הראשון בשורה (או כל מק"ט שיש לו הערה)
-              const noteItem    = line.shortages.find(s => (notes[s.itemNumber]?.note_procurement || notes[s.itemNumber]?.note_tapi))
-              const firstItem   = line.shortages[0]
+              const noteItem    = shortages.find(s => (notes[s.itemNumber]?.note_procurement || notes[s.itemNumber]?.note_tapi))
+              const firstItem   = shortages[0]
               const editItem    = noteItem || firstItem
 
               return (
@@ -221,9 +226,9 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                     {/* הערות — לפי כל המק"טים בשורה */}
                     <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
                       <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                        {line.shortages.some(s => notes[s.itemNumber]?.note_procurement) &&
+                        {shortages.some(s => notes[s.itemNumber]?.note_procurement) &&
                           <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                        {line.shortages.some(s => notes[s.itemNumber]?.note_tapi) &&
+                        {shortages.some(s => notes[s.itemNumber]?.note_tapi) &&
                           <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
                         <button onClick={() => editItem && setEditingRow(editItem)} style={{
                           fontSize:10, padding:'1px 6px', borderRadius:4,
@@ -261,7 +266,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                     {/* מק"טים חסרים */}
                     <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', textAlign:'center' }}>
                       <span style={{ fontSize:11, fontWeight:600, background:'#FCEBEB', color:'#A32D2D', padding:'1px 8px', borderRadius:10 }}>
-                        {line.shortages.length}
+                        {shortages.length}
                       </span>
                     </td>
                   </tr>
@@ -272,7 +277,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                       <td colSpan={COLS.length} style={{ padding:0, borderBottom:'0.5px solid #e0e0da', background:'#f8f8f6' }}>
                         <div style={{ padding:'12px 16px', direction:'rtl' }}>
                           <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:8 }}>
-                            מק"טים חסרים — {line.salesOrder} שורה {line.lineNumber} ({line.shortages.length})
+                            מק"טים חסרים — {line.salesOrder} שורה {line.lineNumber} ({shortages.length})
                           </div>
                           <div style={{ overflowX:'auto' }}>
                             <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
@@ -284,7 +289,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                                 </tr>
                               </thead>
                               <tbody>
-                                {line.shortages.map((sh, j) => {
+                                {shortages.map((sh, j) => {
                                   const n = notes[sh.itemNumber] || {}
                                   const po = sh.purchaseOrders?.[0] || {}
                                   return (
