@@ -44,6 +44,9 @@ function parseSheetByName(workbook, name) {
     headers.forEach((h, i) => { obj[h] = row[i] ?? null })
     return obj
   })
+  result.totalBoAmount = totalBoAmount
+  result.totalBoLines = totalBoLines
+  return result
 }
 
 function fmtDate(v) {
@@ -63,7 +66,8 @@ function str(v) {
 function buildBOSet(boRows) {
   const boItems = new Set()
   const boOrders = new Set()
-  const boAmountBySlKey = {}  // Doc-Line -> Back Orders $
+  let totalBoAmount = 0
+  const totalBoLines = boRows.length
 
   boRows.forEach(r => {
     const item = str(r['Item Code'])
@@ -73,20 +77,14 @@ function buildBOSet(boRows) {
     const rawAmt = r['Back Orders $'] ?? 0
     const amt = typeof rawAmt === 'number' ? rawAmt : parseFloat(String(rawAmt).replace(/,/g, '')) || 0
 
-    if (item) boItems.add(item)
+    totalBoAmount += amt
 
-    if (doc && line) {
-      const key = `${doc}-${line}`
-      boOrders.add(key)
-      if (!boAmountBySlKey[key]) boAmountBySlKey[key] = amt
-    }
-    if (sl) {
-      boOrders.add(sl)
-      if (!boAmountBySlKey[sl]) boAmountBySlKey[sl] = amt
-    }
+    if (item) boItems.add(item)
+    if (doc && line) boOrders.add(`${doc}-${line}`)
+    if (sl) boOrders.add(sl)
   })
 
-  return { boItems, boOrders, boAmountBySlKey }
+  return { boItems, boOrders, totalBoAmount, totalBoLines }
 }
 
 function buildPOByItem(openPO) {
@@ -190,10 +188,8 @@ function determineStage(references, dr4Map, dr5Map, orderByPRD) {
 }
 
 function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) {
-  const { boItems, boOrders, boAmountBySlKey } = boSet
+  const { boItems, boOrders, totalBoAmount, totalBoLines } = boSet
   const { slToOrder } = orderByPRD
-  console.log('boAmountBySlKey keys sample:', Object.keys(boAmountBySlKey).slice(0, 5))
-  console.log('boAmountBySlKey total keys:', Object.keys(boAmountBySlKey).length)
   const itemMap = {}
 
   calcAlloc.forEach(r => {
@@ -237,7 +233,6 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
     if (number2 && number2 !== reference) entry.references.add(number2)
 
     if (salesOrder && !entry.orders.find(o => o.salesOrder === salesOrder && o.lineNumber === rawLine)) {
-      if (isBO && !boAmountBySlKey[slKey]) console.log('NO boAmount for slKey:', slKey)
       entry.orders.push({
         salesOrder, lineNumber: rawLine, slKey,
         customerName: str(r['Customer Name'] || r['Customer name2'] || ''),
@@ -248,7 +243,6 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
         isBO,
         pool: str(r['Pool']),
         remainingAmount: r['Remainig amount main currency'] || 0,
-        boAmount: boAmountBySlKey[slKey] || 0,
         qtyRequired: r['Requested quantity'] || 0,
         qtyPicked: r['Picked quantity'] || 0,
         onOrder: r['On order'] || 0,
@@ -268,7 +262,7 @@ function buildShortages(calcAlloc, boSet, poByItem, dr4Map, dr5Map, orderByPRD) 
     entry.totalReserved += (r['Reserved physical'] || 0)
   })
 
-  return Object.values(itemMap).map(item => {
+  const result = Object.values(itemMap).map(item => {
     const refs = [...item.references].filter(Boolean)
     const { stage, linkedOrders } = determineStage(refs, dr4Map, dr5Map, orderByPRD)
 
