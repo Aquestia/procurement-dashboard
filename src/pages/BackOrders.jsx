@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Badge, fmtDate, LoadingState, EmptyState, PageWrapper } from '../components/shared'
 import * as XLSX from 'xlsx'
 
@@ -6,6 +6,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   const [search, setSearch] = useState('')
   const [filterPO, setFilterPO] = useState('הכל')
   const [expandedItem, setExpandedItem] = useState(null)
+  const [editingRow, setEditingRow] = useState(null)
 
   const boData = useMemo(() => data?.filter(r => r.isBO) || [], [data])
 
@@ -22,17 +23,13 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
   }), [boData, filterPO, search])
 
   const kpis = useMemo(() => {
-    // סכום לפי הזמנה+שורה ייחודיים בלבד — ללא כפילויות
     let totalAll = 0, totalNoDate = 0, totalNoPO = 0
-
     boData.forEach(r => {
-      // Use boAmount (sum of Back Orders $ for linked BO docs)
       const amt = r.boAmount || 0
       totalAll += amt
       if (!r.hasPO) totalNoPO += amt
       if (r.hasPO && r.hasNoDate) totalNoDate += amt
     })
-
     return {
       total: boData.length, totalAmt: totalAll,
       noPO: boData.filter(r => !r.hasPO).length, noPOAmt: totalNoPO,
@@ -40,7 +37,6 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
     }
   }, [boData])
 
-  // Early returns AFTER all hooks
   if (loading) return <LoadingState />
   if (!data) return <EmptyState />
 
@@ -86,9 +82,9 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
       {/* KPI cards */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:16 }}>
         {[
-          { label:'סה"כ מק"טים BO', value:kpis.total, amt:kpis.totalAmt, color:'#A32D2D', info:'כל המק"טים החסרים המשויכים להזמנות Back Order' },
-          { label:'ללא תאריך רכש', value:kpis.noDate, amt:kpis.noDateAmt, color:'#854F0B', info:'יש הזמנת רכש אך ללא תאריך קבלה מאושר מהספק' },
-          { label:'ללא הזמנת רכש', value:kpis.noPO, amt:kpis.noPOAmt, color:'#A32D2D', info:'אין כלל הזמנת רכש פתוחה עבור מק"ט זה' },
+          { label:'סה"כ מק"טים BO', value:kpis.total, amt:kpis.totalAmt, color:'#A32D2D' },
+          { label:'ללא תאריך רכש', value:kpis.noDate, amt:kpis.noDateAmt, color:'#854F0B' },
+          { label:'ללא הזמנת רכש', value:kpis.noPO, amt:kpis.noPOAmt, color:'#A32D2D' },
         ].map((k,i) => (
           <div key={i} style={{ background:'#f4f4f0', borderRadius:8, padding:'12px 14px' }}>
             <div style={{ fontSize:11, color:'#666', marginBottom:4 }}>{k.label}</div>
@@ -119,6 +115,7 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
           const firstOrder = item.orders?.[0]
           const firstPO = item.purchaseOrders?.[0]
           const isExpanded = expandedItem === item.itemNumber
+          const hasNote = !!(n.note_procurement || n.note_tapi)
 
           return (
             <div key={i} style={{ background:'#fff', border:`0.5px solid ${!item.hasPO?'#F09595':'#e0e0da'}`, borderRadius:10, overflow:'hidden' }}>
@@ -145,13 +142,25 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                   <div><span style={{ color:'#888' }}>ספק: </span><strong>{item.vendors?.[0]||'—'}</strong></div>
                   {item.hasPO && <div><span style={{ color:'#888' }}>הז.רכש: </span><strong>{firstPO?.purchaseOrder||'—'}</strong></div>}
                 </div>
+
+                {/* כפתור הערה */}
+                <div style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }} onClick={e => e.stopPropagation()}>
+                  {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                  {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                  <button
+                    onClick={e => { e.stopPropagation(); setEditingRow(item) }}
+                    style={{ fontSize:10, padding:'2px 7px', borderRadius:4, border:'0.5px solid #ddd', background: hasNote ? '#E6F1FB' : '#f4f4f0', color: hasNote ? '#185FA5' : '#555', cursor:'pointer' }}>
+                    ✏️
+                  </button>
+                </div>
+
                 <span style={{ fontSize:12, color:'#378ADD', flexShrink:0 }}>{isExpanded?'▲':'▼'}</span>
               </div>
 
               {/* Expanded */}
               {isExpanded && (
                 <div style={{ padding:'12px 14px', borderTop:'0.5px solid #f0e0e0' }}>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:10 }}>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                     {/* Sales orders */}
                     <div>
                       <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>הזמנות מכירה ({item.orders?.length||0})</div>
@@ -200,17 +209,6 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
                       }
                     </div>
                   </div>
-                  {/* Notes */}
-                  <div style={{ display:'flex', gap:12 }}>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:10, color:'#888', marginBottom:3 }}>הערת רכש:</div>
-                      <NoteInput value={n.note_procurement||''} onChange={v => saveNote(item.itemNumber,'note_procurement',v)} placeholder='הערת רכש...' />
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ fontSize:10, color:'#888', marginBottom:3 }}>הערת תפ"י:</div>
-                      <NoteInput value={n.note_tapi||''} onChange={v => saveNote(item.itemNumber,'note_tapi',v)} placeholder='הערת תפ"י...' />
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -218,20 +216,136 @@ export default function BackOrders({ data, notes, saveNote, loading }) {
         })}
         {filtered.length === 0 && <EmptyState message='אין Back Orders' />}
       </div>
+
+      {/* Notes Modal */}
+      {editingRow && (
+        <NotesModal
+          row={editingRow}
+          notes={notes[editingRow.itemNumber] || {}}
+          onSave={(field, value) => saveNote(editingRow.itemNumber, field, value)}
+          onClose={() => setEditingRow(null)}
+        />
+      )}
     </PageWrapper>
   )
 }
 
-function NoteInput({ value, onChange, placeholder }) {
-  const [val, setVal] = useState(value)
-  const [timer, setTimer] = useState(null)
-  function handle(e) {
-    setVal(e.target.value)
-    clearTimeout(timer)
-    setTimer(setTimeout(() => onChange(e.target.value), 800))
+// ── Notes Modal ───────────────────────────────────────────────────
+function NotesModal({ row, notes, onSave, onClose }) {
+  const [procNote, setProcNote] = useState(notes.note_procurement || '')
+  const [tapiNote, setTapiNote] = useState(notes.note_tapi || '')
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    setSaving(true)
+    await onSave('both', { note_procurement: procNote, note_tapi: tapiNote })
+    setSaving(false)
+    onClose()
   }
+
+  async function handleClear() {
+    if (!confirm('למחוק את כל ההערות?')) return
+    setProcNote('')
+    setTapiNote('')
+    await onSave('both', { note_procurement: '', note_tapi: '' })
+    onClose()
+  }
+
   return (
-    <input value={val} onChange={handle} placeholder={placeholder}
-      style={{ fontSize:11, padding:'4px 8px', border:'0.5px solid #ddd', borderRadius:5, width:'100%', background:'#fff', color:'#1a1a1a', boxSizing:'border-box' }} />
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
+            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{row.productName}</div>
+          </div>
+          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'#888', lineHeight:1 }}>✕</button>
+        </div>
+
+        {/* Note fields */}
+        <NoteField label='הערת רכש' value={procNote} onChange={setProcNote} color='#185FA5' />
+        <div style={{ height:12 }} />
+        <NoteField label='הערת תפ"י' value={tapiNote} onChange={setTapiNote} color='#3B6D11' />
+
+        {/* Actions */}
+        <div style={{ display:'flex', gap:8, marginTop:20, justifyContent:'flex-start' }}>
+          <button onClick={handleSave} disabled={saving} style={{
+            fontSize:13, padding:'8px 20px', borderRadius:7, border:'none',
+            background:'#378ADD', color:'#fff', cursor:'pointer', fontWeight:600
+          }}>{saving ? 'שומר...' : '💾 שמור'}</button>
+          <button onClick={handleClear} style={{
+            fontSize:13, padding:'8px 16px', borderRadius:7,
+            border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer'
+          }}>🗑 מחק הערות</button>
+          <button onClick={onClose} style={{
+            fontSize:13, padding:'8px 16px', borderRadius:7,
+            border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer'
+          }}>ביטול</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Note Field with formatting toolbar ───────────────────────────
+function NoteField({ label, value, onChange, color }) {
+  const ref = useRef(null)
+
+  function insertFormat(prefix, suffix) {
+    const el = ref.current
+    if (!el) return
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const selected = value.slice(start, end)
+    const newVal = value.slice(0, start) + prefix + selected + suffix + value.slice(end)
+    onChange(newVal)
+    setTimeout(() => {
+      el.focus()
+      el.setSelectionRange(start + prefix.length, end + prefix.length)
+    }, 0)
+  }
+
+  return (
+    <div>
+      <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+        <span style={{ fontSize:12, fontWeight:600, color }}>{label}</span>
+        <div style={{ display:'flex', gap:4, marginRight:'auto' }}>
+          {[
+            { label:'B', title:'מודגש', prefix:'**', suffix:'**', style:{ fontWeight:700 } },
+            { label:'I', title:'נטוי', prefix:'_', suffix:'_', style:{ fontStyle:'italic' } },
+            { label:'U', title:'קו תחתי', prefix:'__', suffix:'__', style:{ textDecoration:'underline' } },
+          ].map(btn => (
+            <button key={btn.label} title={btn.title} onClick={() => insertFormat(btn.prefix, btn.suffix)}
+              style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer', ...btn.style }}>
+              {btn.label}
+            </button>
+          ))}
+          <button title='רשימה' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n• ' : '• ')); setTimeout(()=>ref.current?.focus(),0) }}
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
+            •
+          </button>
+          <button title='מספור' onClick={() => { onChange(value + (value && !value.endsWith('\n') ? '\n1. ' : '1. ')); setTimeout(()=>ref.current?.focus(),0) }}
+            style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>
+            1.
+          </button>
+        </div>
+      </div>
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        placeholder={`כתוב ${label} כאן...`}
+        style={{
+          width:'100%', height:120, fontSize:13, padding:'10px 12px',
+          border:`1px solid ${color}40`, borderRadius:8, resize:'vertical',
+          background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6,
+          fontFamily:'inherit', direction:'rtl', textAlign:'right',
+          outline:'none', boxSizing:'border-box',
+        }}
+      />
+    </div>
   )
 }
