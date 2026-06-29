@@ -3,10 +3,10 @@ import { Badge, PageWrapper, LoadingState, EmptyState, fmtDate } from '../compon
 import * as XLSX from 'xlsx'
 
 const STATUS_OPTIONS = [
-  { value: '', label: '—', bg: 'transparent', color: 'var(--text-muted)', border: '#ddd' },
-  { value: 'בטיפול', label: 'בטיפול', bg: 'var(--yellow-bg)', color: 'var(--amber-txt)', border: 'var(--yellow-bdr)' },
-  { value: 'טופל', label: 'טופל ✓', bg: 'var(--green-bg)', color: 'var(--green-dark)', border: 'var(--green-bdr)' },
-  { value: 'הטסה', label: 'הטסה ✈', bg: 'var(--blue-bg)', color: 'var(--blue-dark)', border: 'var(--blue)' },
+  { value: '', label: '—', bg: 'transparent', color: '#888', border: '#ddd' },
+  { value: 'בטיפול', label: 'בטיפול', bg: '#FFF3CD', color: '#856404', border: '#FFCA2C' },
+  { value: 'טופל', label: 'טופל ✓', bg: '#D1E7DD', color: '#0A3622', border: '#75B798' },
+  { value: 'הטסה', label: 'הטסה ✈', bg: '#E6F1FB', color: '#185FA5', border: '#378ADD' },
 ]
 
 export default function TapiView({ data, notes, saveNote, loading }) {
@@ -179,11 +179,11 @@ export default function TapiView({ data, notes, saveNote, loading }) {
 
   return (
     <PageWrapper title='מבט תפ"י' topActions={
-      <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'1px solid #378ADD', borderRadius:6, background:'transparent', color:'var(--blue)', cursor:'pointer' }}>⬇ ייצוא Excel</button>
+      <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'0.5px solid #378ADD', borderRadius:6, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ ייצוא Excel</button>
     }>
       {/* Month buttons - confirmed */}
       <div style={{ marginBottom:10 }}>
-        <div style={{ fontSize:11, color:'var(--text-sub)', fontWeight:600, marginBottom:5 }}>📅 חודש מאושר (Confirmed ship date)</div>
+        <div style={{ fontSize:11, color:'#555', fontWeight:600, marginBottom:5 }}>📅 חודש מאושר (Confirmed ship date)</div>
         <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
           {confirmedMonths.map(m => (
             <button key={m.key} onClick={() => { setConfirmedMonth(confirmedMonth===m.key?null:m.key); setConfirmedRangeActive(false) }}
@@ -195,7 +195,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
             </button>
           ))}
           <button onClick={() => { setConfirmedMonth(null); setConfirmedRangeActive(false) }}
-            style={{ fontSize:11, padding:'4px 11px', borderRadius:14, cursor:'pointer', border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-muted)' }}>
+            style={{ fontSize:11, padding:'4px 11px', borderRadius:14, cursor:'pointer', border:'0.5px solid #ddd', background:'transparent', color:'#888' }}>
             הכל
           </button>
         </div>
@@ -203,7 +203,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
 
       {/* Month buttons - requested */}
       <div style={{ marginBottom:10 }}>
-        <div style={{ fontSize:11, color:'var(--text-sub)', fontWeight:600, marginBottom:5 }}>📆 חודש מבוקש (Requested ship date)</div>
+        <div style={{ fontSize:11, color:'#555', fontWeight:600, marginBottom:5 }}>📆 חודש מבוקש (Requested ship date)</div>
         <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
           {requestedMonths.map(m => (
             <button key={m.key} onClick={() => { setRequestedMonth(requestedMonth===m.key?null:m.key); setRequestedRangeActive(false) }}
@@ -215,14 +215,14 @@ export default function TapiView({ data, notes, saveNote, loading }) {
             </button>
           ))}
           <button onClick={() => { setRequestedMonth(null); setRequestedRangeActive(false) }}
-            style={{ fontSize:11, padding:'4px 11px', borderRadius:14, cursor:'pointer', border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-muted)' }}>
+            style={{ fontSize:11, padding:'4px 11px', borderRadius:14, cursor:'pointer', border:'0.5px solid #ddd', background:'transparent', color:'#888' }}>
             הכל
           </button>
         </div>
       </div>
 
       {/* Date ranges */}
-      <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:8, padding:'10px 14px', marginBottom:10 }}>
+      <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:8, padding:'10px 14px', marginBottom:10 }}>
         <DateRange label='📅 מאושר מ:' from={confirmedFrom} to={confirmedTo}
           onFrom={setConfirmedFrom} onTo={setConfirmedTo}
           onApply={() => { setConfirmedRangeActive(true); setConfirmedMonth(null) }}
@@ -238,7 +238,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
 
       {/* Filters row */}
       <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap', alignItems:'center' }}>
-        <div style={{ display:'flex', border:'1px solid var(--border-light)', borderRadius:6, overflow:'hidden' }}>
+        <div style={{ display:'flex', border:'0.5px solid #ddd', borderRadius:6, overflow:'hidden' }}>
           {['הכל','לא BO','BO בלבד'].map(opt => (
             <button key={opt} onClick={() => setBoFilter(opt)} style={{
               fontSize:12, padding:'5px 12px', border:'none', cursor:'pointer',
@@ -248,26 +248,26 @@ export default function TapiView({ data, notes, saveNote, loading }) {
           ))}
         </div>
         <select value={filterTreatment} onChange={e => setFilterTreatment(e.target.value)}
-          style={{ fontSize:12, padding:'5px 8px', border:'1px solid var(--border-light)', borderRadius:6, background:'var(--bg-card)', color:'var(--text-main)' }}>
+          style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
           {['הכל','טופל','בטיפול','הטסה','לא טופל'].map(o => <option key={o}>{o}</option>)}
         </select>
         <select value={filterBuyer} onChange={e => setFilterBuyer(e.target.value)}
-          style={{ fontSize:12, padding:'5px 8px', border:'1px solid var(--border-light)', borderRadius:6, background:'var(--bg-card)', color:'var(--text-main)' }}>
+          style={{ fontSize:12, padding:'5px 8px', border:'0.5px solid #ddd', borderRadius:6, background:'#fff', color:'#1a1a1a' }}>
           {buyerGroups.map(o => <option key={o}>{o}</option>)}
         </select>
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder='חיפוש מק"ט / לקוח...'
-          style={{ fontSize:12, padding:'5px 10px', border:'1px solid var(--border-light)', borderRadius:6, width:200, background:'var(--bg-card)', color:'var(--text-main)' }} />
-        <span style={{ fontSize:11, color:'var(--text-hint)', marginRight:'auto' }}>{filtered.length} מק"טים</span>
+          style={{ fontSize:12, padding:'5px 10px', border:'0.5px solid #ddd', borderRadius:6, width:200, background:'#fff', color:'#1a1a1a' }} />
+        <span style={{ fontSize:11, color:'#999', marginRight:'auto' }}>{filtered.length} מק"טים</span>
       </div>
 
       {/* Table */}
-      <div style={{ background:'var(--bg-card)', border:'1px solid var(--border-card)', borderRadius:10, overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 320px)' }}>
+      <div style={{ background:'#fff', border:'0.5px solid #e5e5e0', borderRadius:10, overflowX:'auto', overflowY:'auto', maxHeight:'calc(100vh - 320px)' }}>
         <table style={{ width:'max-content', minWidth:'100%', borderCollapse:'collapse', fontSize:12 }}>
           <thead>
-            <tr style={{ background:'var(--bg-neutral)', position:'sticky', top:0, zIndex:10 }}>
+            <tr style={{ background:'#f4f4f0', position:'sticky', top:0, zIndex:10 }}>
               {['סטטוס טיפול','מק"ט','תיאור מוצר','סטטוס','פק"ע / הזמנה','הז. מכירה','שורת מכירה','לקוח','ת. מאושר','ת. מבוקש','נדרש','חוסר','הז. רכש','שורת רכש','מסלול','צפי קבלה','הערות'].map(h => (
-                <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'var(--bg-neutral)' }}>{h}</th>
+                <th key={h} style={{ padding:'7px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap', position:'sticky', top:0, background:'#f4f4f0' }}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -284,64 +284,64 @@ export default function TapiView({ data, notes, saveNote, loading }) {
               return (
               <React.Fragment key={i}>
                 <tr key={i}
-                  style={{ background: treatment==='טופל'?'var(--green-bg)':treatment==='בטיפול'?'var(--yellow-bg)':treatment==='הטסה'?'var(--blue-bg)':row.isBO?'var(--red-bg)':i%2===0?'var(--bg-card)':'var(--bg-row)', cursor:'pointer' }}
+                  style={{ background: treatment==='טופל'?'#D1E7DD22':treatment==='בטיפול'?'#FFF3CD22':treatment==='הטסה'?'#E6F1FB33':row.isBO?'#FCEBEB18':i%2===0?'#fff':'#fafaf8', cursor:'pointer' }}
                   onClick={() => setExpandedItem(expandedItem===row.itemNumber ? null : row.itemNumber)}>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }} onClick={e => e.stopPropagation()}>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
                     <select value={treatment} onChange={e => saveNote(row.itemNumber, 'treatment_status', e.target.value)}
                       style={{ fontSize:10, padding:'2px 5px', border:`0.5px solid ${statusOpt.border}`, borderRadius:4, background:statusOpt.bg, color:statusOpt.color, cursor:'pointer' }}>
                       {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                   </td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600, whiteSpace:'nowrap' }}>{row.itemNumber}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.productName||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }}><Badge status={row.procurementStatus} /></td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:10, color:'var(--text-sub)' }}>{prdVal||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11 }}>{firstOrder?.lineNumber||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{firstOrder?.customerName||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(confirmed)||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(requested)||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{row.totalQtyRequired}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', color:row.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{row.shortage}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11, whiteSpace:'nowrap' }}>
-                    {!row.hasPO ? <span style={{color:'var(--red-dark)'}}>❌</span> : firstPO(row).purchaseOrder||'—'}
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600, whiteSpace:'nowrap' }}>{row.itemNumber}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:150, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{row.productName||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }}><Badge status={row.procurementStatus} /></td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10, color:'#555' }}>{prdVal||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontSize:11 }}>{soVal}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstOrder?.lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:130, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{firstOrder?.customerName||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(confirmed)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(requested)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{row.totalQtyRequired}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', color:row.shortage>0?'#A32D2D':'#3B6D11', fontWeight:600 }}>{row.shortage}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>
+                    {!row.hasPO ? <span style={{color:'#A32D2D'}}>❌</span> : firstPO(row).purchaseOrder||'—'}
                   </td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{fmtDate(firstPO(row).confirmedReceiptDate)||'—'}</td>
-                  <td style={{ padding:'6px 8px', borderBottom:'1px solid var(--border-tbl)' }} onClick={e => e.stopPropagation()}>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11 }}>{firstPO(row).lineNumber||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:11, whiteSpace:'nowrap' }}>{firstPO(row).voyage||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{fmtDate(firstPO(row).confirmedReceiptDate)||'—'}</td>
+                  <td style={{ padding:'6px 8px', borderBottom:'0.5px solid #f0f0ea' }} onClick={e => e.stopPropagation()}>
                     <div style={{ display:'flex', gap:4, alignItems:'center' }}>
-                      {n.note_procurement && <span style={{ fontSize:9, background:'var(--blue-bg)', color:'var(--blue-dark)', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
-                      {n.note_tapi && <span style={{ fontSize:9, background:'var(--green-bg)', color:'var(--green-dark)', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
-                      <button onClick={() => setEditingRow(row)} style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'1px solid var(--border-light)', background:'var(--bg-page)', color:'var(--text-sub)', cursor:'pointer' }}>✏️</button>
+                      {n.note_procurement && <span style={{ fontSize:9, background:'#E6F1FB', color:'#185FA5', padding:'1px 5px', borderRadius:4 }}>רכש</span>}
+                      {n.note_tapi && <span style={{ fontSize:9, background:'#EAF3DE', color:'#3B6D11', padding:'1px 5px', borderRadius:4 }}>תפ"י</span>}
+                      <button onClick={() => setEditingRow(row)} style={{ fontSize:10, padding:'1px 6px', borderRadius:4, border:'0.5px solid #ddd', background:'#f4f4f0', color:'#555', cursor:'pointer' }}>✏️</button>
                     </div>
                   </td>
                 </tr>
                 {expandedItem === row.itemNumber && (
                   <React.Fragment key={`exp-${i}`}>
                     <tr>
-                      <td colSpan={16} style={{ padding:0, borderBottom:'1px solid var(--border-card)' }}>
+                      <td colSpan={16} style={{ padding:0, borderBottom:'0.5px solid #e5e5e0' }}>
                         <div style={{ padding:'10px 14px', background:'#f8f8f6', direction:'rtl' }}>
-                          <div style={{ fontSize:11, fontWeight:600, color:'var(--text-sub)', marginBottom:6 }}>
+                          <div style={{ fontSize:11, fontWeight:600, color:'#555', marginBottom:6 }}>
                             הזמנות רכש פתוחות — {row.itemNumber} ({row.purchaseOrders?.length||0})
                           </div>
                           {!row.hasPO
-                            ? <div style={{ fontSize:11, color:'var(--red-dark)' }}>❌ אין הזמנות רכש פתוחות</div>
+                            ? <div style={{ fontSize:11, color:'#A32D2D' }}>❌ אין הזמנות רכש פתוחות</div>
                             : <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
                                 <thead><tr>{['הז. רכש','שורה','מסלול','ספק','קב. רכש','כמות','יתרה','ת. קבלה מאושר','סטטוס'].map(h=>(
-                                  <th key={h} style={{ background:'#F0F0EA', padding:'4px 8px', fontWeight:600, fontSize:10, color:'var(--text-sub)', borderBottom:'1px solid var(--border-tbl)', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
+                                  <th key={h} style={{ background:'#f0f0ec', padding:'4px 8px', fontWeight:600, fontSize:10, color:'#555', borderBottom:'0.5px solid #e0e0da', textAlign:'right', whiteSpace:'nowrap' }}>{h}</th>
                                 ))}</tr></thead>
                                 <tbody>{row.purchaseOrders?.map((po,j)=>(
-                                  <tr key={j} style={{ background:j%2===0?'var(--bg-card)':'var(--bg-row)' }}>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.lineNumber||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.buyerGroup||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)' }}>{po.quantity||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
-                                    <td style={{ padding:'4px 8px', borderBottom:'1px solid var(--border-tbl)', fontSize:10 }}>{po.approvalStatus||'—'}</td>
+                                  <tr key={j} style={{ background:j%2===0?'#fff':'#fafaf8' }}>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', fontWeight:500 }}>{po.purchaseOrder||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.lineNumber||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap' }}>{po.voyage||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', maxWidth:120, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{po.vendorName||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.buyerGroup||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea' }}>{po.quantity||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', fontWeight:600 }}>{po.deliverRemainder||'—'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', whiteSpace:'nowrap', color:!po.confirmedReceiptDate?'#A32D2D':'#1a1a1a' }}>{fmtDate(po.confirmedReceiptDate)||'⚠️ חסר'}</td>
+                                    <td style={{ padding:'4px 8px', borderBottom:'0.5px solid #f0f0ea', fontSize:10 }}>{po.approvalStatus||'—'}</td>
                                   </tr>
                                 ))}</tbody>
                               </table>
@@ -356,7 +356,7 @@ export default function TapiView({ data, notes, saveNote, loading }) {
             })}
           </tbody>
         </table>
-        {filtered.length === 0 && <div style={{ padding:30, textAlign:'center', color:'var(--text-hint)' }}>אין נתונים</div>}
+        {filtered.length === 0 && <div style={{ padding:30, textAlign:'center', color:'#aaa' }}>אין נתונים</div>}
       </div>
 
       {editingRow && (
@@ -374,18 +374,18 @@ export default function TapiView({ data, notes, saveNote, loading }) {
 function DateRange({ label, from, to, onFrom, onTo, onApply, onClear, active }) {
   return (
     <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-      <span style={{ fontSize:11, color:'var(--text-muted)', whiteSpace:'nowrap' }}>{label}</span>
+      <span style={{ fontSize:11, color:'#666', whiteSpace:'nowrap' }}>{label}</span>
       <input type='date' value={from} onChange={e => onFrom(e.target.value)}
-        style={{ fontSize:11, padding:'3px 6px', border:'1px solid var(--border-light)', borderRadius:5, background:'var(--bg-card)', color:'var(--text-main)' }} />
-      <span style={{ fontSize:11, color:'var(--text-muted)' }}>עד:</span>
+        style={{ fontSize:11, padding:'3px 6px', border:'0.5px solid #ddd', borderRadius:5, background:'#fff', color:'#1a1a1a' }} />
+      <span style={{ fontSize:11, color:'#888' }}>עד:</span>
       <input type='date' value={to} onChange={e => onTo(e.target.value)}
-        style={{ fontSize:11, padding:'3px 6px', border:'1px solid var(--border-light)', borderRadius:5, background:'var(--bg-card)', color:'var(--text-main)' }} />
+        style={{ fontSize:11, padding:'3px 6px', border:'0.5px solid #ddd', borderRadius:5, background:'#fff', color:'#1a1a1a' }} />
       <button onClick={onApply} style={{
         fontSize:11, padding:'3px 10px', borderRadius:5,
         border:`0.5px solid ${active?'#378ADD':'#ddd'}`,
         background:active?'#378ADD':'transparent', color:active?'#fff':'#555', cursor:'pointer'
       }}>החל</button>
-      {active && <button onClick={onClear} style={{ fontSize:11, padding:'3px 8px', borderRadius:5, border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-muted)', cursor:'pointer' }}>נקה</button>}
+      {active && <button onClick={onClear} style={{ fontSize:11, padding:'3px 8px', borderRadius:5, border:'0.5px solid #ddd', background:'transparent', color:'#888', cursor:'pointer' }}>נקה</button>}
     </div>
   )
 }
@@ -411,14 +411,14 @@ function NotesModal({ row, notes, onSave, onClose }) {
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}>
-      <div style={{ background:'var(--bg-card)', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
+      <div style={{ background:'#fff', borderRadius:12, padding:24, width:680, maxHeight:'85vh', overflow:'auto', direction:'rtl' }}
         onClick={e => e.stopPropagation()}>
         <div style={{ display:'flex', alignItems:'center', marginBottom:16, gap:10 }}>
           <div style={{ flex:1 }}>
             <div style={{ fontSize:15, fontWeight:600 }}>{row.itemNumber}</div>
-            <div style={{ fontSize:12, color:'var(--text-muted)', marginTop:2 }}>{row.productName}</div>
+            <div style={{ fontSize:12, color:'#888', marginTop:2 }}>{row.productName}</div>
           </div>
-          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}>✕</button>
+          <button onClick={onClose} style={{ fontSize:18, background:'none', border:'none', cursor:'pointer', color:'#888' }}>✕</button>
         </div>
         <NoteField label='הערת רכש' value={procNote} onChange={setProcNote} color='#185FA5' />
         <div style={{ height:12 }} />
@@ -427,8 +427,8 @@ function NotesModal({ row, notes, onSave, onClose }) {
           <button onClick={handleSave} disabled={saving} style={{ fontSize:13, padding:'8px 20px', borderRadius:7, border:'none', background:'#378ADD', color:'#fff', cursor:'pointer', fontWeight:600 }}>
             {saving ? 'שומר...' : '💾 שמור'}
           </button>
-          <button onClick={handleClear} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'1px solid #E24B4A', background:'transparent', color:'var(--red-mid)', cursor:'pointer' }}>🗑 מחק הערות</button>
-          <button onClick={onClose} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'1px solid var(--border-light)', background:'transparent', color:'var(--text-sub)', cursor:'pointer' }}>ביטול</button>
+          <button onClick={handleClear} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'0.5px solid #E24B4A', background:'transparent', color:'#E24B4A', cursor:'pointer' }}>🗑 מחק הערות</button>
+          <button onClick={onClose} style={{ fontSize:13, padding:'8px 16px', borderRadius:7, border:'0.5px solid #ddd', background:'transparent', color:'#555', cursor:'pointer' }}>ביטול</button>
         </div>
       </div>
     </div>
@@ -449,15 +449,15 @@ function NoteField({ label, value, onChange, color }) {
         <span style={{ fontSize:12, fontWeight:600, color }}>{label}</span>
         <div style={{ display:'flex', gap:4, marginRight:'auto' }}>
           {[['B','**','**'],['I','_','_'],['U','__','__']].map(([l,p,s]) => (
-            <button key={l} onClick={() => ins(p,s)} style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer', fontWeight:l==='B'?700:400, fontStyle:l==='I'?'italic':'normal', textDecoration:l==='U'?'underline':'none' }}>{l}</button>
+            <button key={l} onClick={() => ins(p,s)} style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer', fontWeight:l==='B'?700:400, fontStyle:l==='I'?'italic':'normal', textDecoration:l==='U'?'underline':'none' }}>{l}</button>
           ))}
-          <button onClick={() => onChange(value+(value&&!value.endsWith('\n')?'\n':'')+'• ')} style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer' }}>•</button>
-          <button onClick={() => onChange(value+(value&&!value.endsWith('\n')?'\n':'')+'1. ')} style={{ fontSize:12, width:24, height:24, border:'1px solid var(--border-light)', borderRadius:4, background:'var(--bg-page)', cursor:'pointer' }}>1.</button>
+          <button onClick={() => onChange(value+(value&&!value.endsWith('\n')?'\n':'')+'• ')} style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>•</button>
+          <button onClick={() => onChange(value+(value&&!value.endsWith('\n')?'\n':'')+'1. ')} style={{ fontSize:12, width:24, height:24, border:'0.5px solid #ddd', borderRadius:4, background:'#f4f4f0', cursor:'pointer' }}>1.</button>
         </div>
       </div>
       <textarea ref={ref} value={value} onChange={e => onChange(e.target.value)}
         placeholder={`כתוב ${label} כאן...`}
-        style={{ width:'100%', height:120, fontSize:13, padding:'10px 12px', border:`1px solid ${color}40`, borderRadius:8, resize:'vertical', background:'var(--bg-row)', color:'var(--text-main)', lineHeight:1.6, fontFamily:'inherit', direction:'rtl', textAlign:'right', outline:'none', boxSizing:'border-box' }} />
+        style={{ width:'100%', height:120, fontSize:13, padding:'10px 12px', border:`1px solid ${color}40`, borderRadius:8, resize:'vertical', background:'#fafaf8', color:'#1a1a1a', lineHeight:1.6, fontFamily:'inherit', direction:'rtl', textAlign:'right', outline:'none', boxSizing:'border-box' }} />
     </div>
   )
 }
