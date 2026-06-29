@@ -63,25 +63,34 @@ function str(v) {
 function buildBOSet(boRows) {
   const boItems = new Set()
   const boOrders = new Set()
-  const boAmountBySlKey = {}  // slKey -> Back Orders $
+  const boAmountBySlKey = {}  // slKey (Doc-Line) -> Back Orders $
+
   boRows.forEach(r => {
     const item = str(r['Item Code'])
-    const doc = str(r['Doc'])
+    const doc  = str(r['Doc'])
     const line = r['Line'] !== null ? String(r['Line']).split('.')[0].trim() : ''
-    const sl = str(r['S & L']).replace(/\s+/g, '')
-    const amt = r['Back Orders $'] || r['Back Order $'] || r['Back orders $'] || r['Back order $'] || 0
+    const sl   = str(r['S & L'] || '').replace(/\s+/g, '')
+
+    // סכום מעמודת Back Orders $
+    const rawAmt = r['Back Orders $'] ?? 0
+    const amt = typeof rawAmt === 'number' ? rawAmt : parseFloat(String(rawAmt).replace(/,/g, '')) || 0
+
     if (item) boItems.add(item)
-    if (doc && line) boOrders.add(`${doc}-${line}`)
-    if (sl) {
-      boOrders.add(sl)
-      // שמירת הסכום לפי slKey — אם כבר קיים לא מחליפים
-      if (!boAmountBySlKey[sl]) boAmountBySlKey[sl] = typeof amt === 'number' ? amt : parseFloat(String(amt).replace(/,/g,'')) || 0
-    }
+
+    // slKey לפי Doc-Line (הפורמט העיקרי)
     if (doc && line) {
       const key = `${doc}-${line}`
-      if (!boAmountBySlKey[key]) boAmountBySlKey[key] = typeof amt === 'number' ? amt : parseFloat(String(amt).replace(/,/g,'')) || 0
+      boOrders.add(key)
+      if (!boAmountBySlKey[key]) boAmountBySlKey[key] = amt
+    }
+
+    // fallback: S & L אם קיים
+    if (sl) {
+      boOrders.add(sl)
+      if (!boAmountBySlKey[sl]) boAmountBySlKey[sl] = amt
     }
   })
+
   return { boItems, boOrders, boAmountBySlKey }
 }
 
