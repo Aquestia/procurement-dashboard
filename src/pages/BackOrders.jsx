@@ -54,7 +54,7 @@ export default function BackOrders({ data, notes, saveNote, loading, financials 
 
     boItems.forEach(item => {
       item.orders?.forEach(order => {
-        if (!order.salesOrder) return
+        if (!order.salesOrder || !order.isBO) return
         const key = order.slKey || `${order.salesOrder}-${order.lineNumber}`
         if (!lineMap[key]) {
           lineMap[key] = {
@@ -180,7 +180,7 @@ export default function BackOrders({ data, notes, saveNote, loading, financials 
   }
 
   return (
-    <PageWrapper title={`Back Orders — ${orderLines.length} שורות הזמנה | ${kpis.uniqueItems || 0} מק"טים`} topActions={
+    <PageWrapper title={`Back Orders — ${kpis.totalLines} שורות הזמנה | ${kpis.uniqueItems || 0} מק"טים`} topActions={
       <button onClick={handleExport} style={{ fontSize:12, padding:'5px 12px', border:'0.5px solid #378ADD', borderRadius:6, background:'transparent', color:'#378ADD', cursor:'pointer' }}>⬇ ייצוא Excel</button>
     }>
 
